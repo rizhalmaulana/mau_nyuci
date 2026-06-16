@@ -1,0 +1,80 @@
+name: maunyuci_customer
+description: "Aplikasi MauNyuci khusus untuk Customer"
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  maunyuci_core:
+    path: ../maunyuci_core
+
+  # State Management & Navigation
+  get: ^4.6.6
+
+  # Auth
+  google_sign_in: ^6.2.2
+
+  # UI & Styling
+  google_fonts: ^6.3.2
+  shimmer: ^3.0.0
+  cached_network_image: ^3.3.1
+
+  # Maps & Location (Leaflet)
+  flutter_map: ^6.1.0
+  latlong2: ^0.9.0
+  geolocator: ^10.1.0
+
+  # Hardware & Files
+  camera: 0.11.2
+  image_picker: ^1.0.7
+  flutter_image_compress: ^2.3.0
+  permission_handler: ^12.0.1
+
+  # Utilities
+  connectivity_plus: ^7.0.0
+  url_launcher: ^6.3.2
+  package_info_plus: ^9.0.1
+  flutter_svg: ^2.2.1
+  lottie: ^3.3.1
+  firebase_core: ^4.7.0
+  firebase_auth: ^6.4.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  rename: ^3.1.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/images/
+    - assets/lotties/
+    - assets/icons/
+    - shorebird.yaml
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  # Untuk base image iOS dan Android jadul, pakai gambar normal
+  image_path: "assets/images/mau_nyuci.png"
+
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/adaptive_foreground.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/images/mau_nyuci.png"
+
+  android_12:
+    color: "#FFFFFF"
+    image: "assets/images/adaptive_foreground.png"
