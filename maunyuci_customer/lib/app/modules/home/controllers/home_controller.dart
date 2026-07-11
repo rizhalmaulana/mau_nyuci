@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
 import 'package:maunyuci_customer/app/data/model/transaction/transaction_response_model.dart';
@@ -71,7 +71,7 @@ class HomeController extends GetxController {
         }
       }
     } on DioException catch (e) {
-      final errorMessage = handleApiError(e.response?.data);
+      final errorMessage = handleApiError(e);
       print('Error fetching profile: $errorMessage');
     }
   }
@@ -87,6 +87,20 @@ class HomeController extends GetxController {
       orderHistory.assignAll(historyData);
     } catch (e) {
       debugPrint('Error Home: $e');
+      if (e is DioException && e.response?.statusCode == 401) {
+        // Handled by the global onUnauthorized interceptor
+      } else {
+        final errorMessage = handleApiError(e);
+        Get.snackbar(
+          'Gagal Memuat Data',
+          errorMessage,
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade400,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+        );
+      }
     } finally {
       isLoading.value = false;
     }

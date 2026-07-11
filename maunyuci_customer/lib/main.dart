@@ -3,7 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:maunyuci_core/constants/app_constants.dart';
+import 'package:maunyuci_core/maunyuci_core.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/utils/responsive_helper.dart';
 
@@ -19,6 +19,30 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverrides();
   await Firebase.initializeApp();
+
+  // Setup global 401 unauthorized redirect to login
+  bool isRedirecting = false;
+  ApiClient.onUnauthorized = () {
+    if (isRedirecting) return;
+    isRedirecting = true;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.offAllNamed(Routes.LOGIN);
+      Get.snackbar(
+        'Sesi Berakhir',
+        'Sesi Anda telah berakhir. Silakan masuk kembali.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade400,
+        colorText: Colors.white,
+        margin: const EdgeInsets.all(16),
+        borderRadius: 8,
+      );
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      isRedirecting = false;
+    });
+  };
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,

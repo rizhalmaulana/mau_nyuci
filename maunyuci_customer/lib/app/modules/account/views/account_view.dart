@@ -6,6 +6,7 @@ import '../controllers/account_controller.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../../core/helpers/api_error_helper.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../routes/app_pages.dart';
 
@@ -77,10 +78,13 @@ class AccountView extends GetView<AccountController> {
                                 child: const CircularProgressIndicator(color: Colors.white),
                               );
                             }
-                            if (controller.profilePictureUrl.value != null && controller.profilePictureUrl.value!.isNotEmpty) {
+                            final rawUrl = controller.profilePictureUrl.value;
+                            final imgUrl = getFullImageUrl(rawUrl);
+                            final hasValidUrl = imgUrl.isNotEmpty && imgUrl.startsWith('http');
+                            if (hasValidUrl) {
                               return ClipOval(
                                 child: Image.network(
-                                  controller.profilePictureUrl.value!,
+                                  imgUrl,
                                   width: R.r(64),
                                   height: R.r(64),
                                   fit: BoxFit.cover,

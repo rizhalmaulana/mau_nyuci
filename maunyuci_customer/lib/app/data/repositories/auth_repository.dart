@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import '../../core/helpers/api_error_helper.dart';
 import '../model/auth/auth_profile_response_model.dart';
 import '../providers/auth_provider.dart';
 
@@ -14,11 +15,7 @@ class AuthRepository {
       }
       throw Exception("Gagal mengambil data profil");
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionTimeout || 
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Koneksi terputus. Waktu permintaan habis (timeout).");
-      }
-      throw Exception(e.message ?? "Gagal menghubungi server");
+      throw Exception(handleApiError(e));
     } catch (e) {
       throw Exception(e.toString());
     }
@@ -53,26 +50,7 @@ class AuthRepository {
     } on DioException catch (e) {
       debugPrint("Status Code: ${e.response?.statusCode}");
       debugPrint("Response Data: ${e.response?.data}");
-
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Koneksi terputus. Waktu permintaan habis (timeout).");
-      }
-      
-      String errorMsg = e.message ?? "Gagal menghubungi server";
-      if (e.response?.data != null) {
-        if (e.response!.data is Map) {
-           final dataMap = e.response!.data as Map;
-           if (dataMap.containsKey('message')) {
-             errorMsg = dataMap['message'].toString();
-           } else {
-             errorMsg = dataMap.toString();
-           }
-        } else {
-           errorMsg = e.response!.data.toString();
-        }
-      }
-      throw Exception(errorMsg);
+      throw Exception(handleApiError(e));
     } catch (e) {
       debugPrint(e.toString());
       throw Exception(e.toString());
@@ -95,26 +73,7 @@ class AuthRepository {
     } on DioException catch (e) {
       debugPrint("Status Code: ${e.response?.statusCode}");
       debugPrint("Response Data: ${e.response?.data}");
-
-      if (e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
-        throw Exception("Koneksi terputus. Waktu permintaan habis (timeout).");
-      }
-      
-      String errorMsg = e.message ?? "Gagal menghubungi server";
-      if (e.response?.data != null) {
-        if (e.response!.data is Map) {
-           final dataMap = e.response!.data as Map;
-           if (dataMap.containsKey('message')) {
-             errorMsg = dataMap['message'].toString();
-           } else {
-             errorMsg = dataMap.toString();
-           }
-        } else {
-           errorMsg = e.response!.data.toString();
-        }
-      }
-      throw Exception(errorMsg);
+      throw Exception(handleApiError(e));
     } catch (e) {
       debugPrint(e.toString());
       throw Exception(e.toString());

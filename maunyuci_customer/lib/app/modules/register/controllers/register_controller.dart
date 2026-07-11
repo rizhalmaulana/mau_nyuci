@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../../core/widgets/custom_error_modal.dart';
 import '../../../core/widgets/custom_success_modal.dart';
+import '../../../core/helpers/api_error_helper.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/providers/auth_provider.dart';
 
@@ -112,27 +113,7 @@ class RegisterController extends GetxController {
           }
         }
       } on DioException catch (e) {
-        String errorMessage = AppConstants.defaultErrorMsg;
-
-        if (e.response != null && e.response?.data != null) {
-          final responseData = e.response!.data;
-          
-          if (responseData is Map<String, dynamic>) {
-            if (responseData.containsKey('success') && responseData['success'] == false) {
-              if (responseData.containsKey('errors') && responseData['errors'] is List) {
-                final errors = responseData['errors'] as List;
-                errorMessage = errors.join('\n');
-              } else if (responseData.containsKey('message')) {
-                errorMessage = responseData['message'];
-              }
-            } else if (responseData.containsKey('message')) {
-              errorMessage = responseData['message'];
-            }
-          } else if (responseData is String) {
-            errorMessage = responseData;
-          }
-        }
-
+        final errorMessage = handleApiError(e);
         CustomErrorModal.show(
           title: 'Ups, Gagal Daftar!',
           message: errorMessage,
