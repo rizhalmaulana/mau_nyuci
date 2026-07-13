@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/utils/responsive_helper.dart';
+import 'app/core/widgets/custom_snackbar.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -28,14 +29,9 @@ void main() async {
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Get.offAllNamed(Routes.LOGIN);
-      Get.snackbar(
+      CustomSnackbar.showError(
         'Sesi Berakhir',
         'Sesi Anda telah berakhir. Silakan masuk kembali.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade400,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
-        borderRadius: 8,
       );
     });
 

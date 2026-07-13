@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
-import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/repositories/auth_repository.dart';
 
@@ -87,7 +87,6 @@ class CompleteProfileController extends GetxController {
     if (_validateForm()) {
       try {
         isLoading.value = true;
-        await Future.delayed(const Duration(seconds: 1));
 
         double? lat;
         double? lng;
@@ -135,9 +134,9 @@ class CompleteProfileController extends GetxController {
       } catch (e) {
         String errorMessage = e.toString().replaceAll('Exception: ', '');
 
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Menyimpan!',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Ups, Gagal Menyimpan!',
+          errorMessage,
         );
       } finally {
         isLoading.value = false;

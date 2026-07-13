@@ -7,6 +7,7 @@ import '../../../data/repositories/auth_repository.dart';
 import '../../../routes/app_pages.dart';
 import '../../../core/widgets/custom_confirm_modal.dart';
 import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 
 class AccountController extends GetxController {
   final AuthRepository _repository = AuthRepository();
@@ -39,7 +40,7 @@ class AccountController extends GetxController {
       email.value = '-';
       phone.value = '-';
       String errorMessage = e.toString().replaceAll('Exception: ', '');
-      Get.snackbar('Error', errorMessage);
+      CustomSnackbar.showError('Error', errorMessage);
     } finally {
       isFetchingProfile.value = false;
     }
@@ -88,9 +89,9 @@ class AccountController extends GetxController {
           Get.offAllNamed(Routes.LOGIN);
         } catch (e) {
           isLoading.value = false;
-          CustomErrorModal.show(
-            title: 'Ups, Gagal Keluar!',
-            message: 'Terjadi kesalahan saat mencoba logout. Silakan coba lagi.',
+          CustomSnackbar.showError(
+            'Ups, Gagal Keluar!',
+            'Terjadi kesalahan saat mencoba logout. Silakan coba lagi.',
           );
         }
       },

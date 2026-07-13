@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
-import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 import '../../../core/widgets/custom_success_modal.dart';
 import '../../../core/helpers/api_error_helper.dart';
 import '../../../routes/app_pages.dart';
@@ -114,9 +114,9 @@ class RegisterController extends GetxController {
         }
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Daftar!',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Ups, Gagal Daftar!',
+          errorMessage,
         );
       } finally {
         isLoading.value = false;

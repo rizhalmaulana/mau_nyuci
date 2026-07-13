@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../data/repositories/auth_repository.dart';
-import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 
 class ChangePasswordController extends GetxController {
   final AuthRepository _authRepository = AuthRepository();
@@ -84,17 +84,15 @@ class ChangePasswordController extends GetxController {
         );
 
         Get.back();
-        Get.snackbar(
+        CustomSnackbar.showSuccess(
           'Sukses', 
           'Password berhasil diubah!',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
         );
       } catch (e) {
         String errorMessage = e.toString().replaceAll('Exception: ', '');
-        CustomErrorModal.show(
-          title: 'Gagal Mengubah Password',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Gagal Mengubah Password',
+          errorMessage,
         );
       } finally {
         isLoading.value = false;

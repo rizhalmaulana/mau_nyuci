@@ -77,19 +77,25 @@ String handleApiError(dynamic e) {
 
 String getFullImageUrl(String? path) {
   if (path == null || path.trim().isEmpty) return '';
+
+  String fullUrl;
   if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+    fullUrl = path;
+  } else {
+    String serverUrl = ApiConstants.baseUrl;
+    if (serverUrl.endsWith('/api/')) {
+      serverUrl = serverUrl.substring(0, serverUrl.length - 4);
+    } else if (serverUrl.endsWith('/api')) {
+      serverUrl = serverUrl.substring(0, serverUrl.length - 3);
+    }
+
+    fullUrl = path.startsWith('/')
+        ? '$serverUrl${path.substring(1)}'
+        : '$serverUrl$path';
   }
-  
-  String serverUrl = ApiConstants.baseUrl;
-  if (serverUrl.endsWith('/api/')) {
-    serverUrl = serverUrl.substring(0, serverUrl.length - 4);
-  } else if (serverUrl.endsWith('/api')) {
-    serverUrl = serverUrl.substring(0, serverUrl.length - 3);
-  }
-  
-  if (path.startsWith('/')) {
-    return '$serverUrl${path.substring(1)}';
-  }
-  return '$serverUrl$path';
+
+  // Cache-busting: hindari CDN/negative cache menyajikan response lama
+  // tepat setelah upload/update foto profil
+  final separator = fullUrl.contains('?') ? '&' : '?';
+  return '$fullUrl${separator}v=${DateTime.now().millisecondsSinceEpoch}';
 }

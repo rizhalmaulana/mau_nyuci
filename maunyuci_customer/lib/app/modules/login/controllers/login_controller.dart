@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:maunyuci_core/maunyuci_core.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 import '../../../core/helpers/api_error_helper.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/providers/auth_provider.dart';
@@ -125,9 +125,9 @@ class LoginController extends GetxController {
         }
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Ups, Gagal Masuk!',
+          errorMessage,
         );
       } finally {
         isLoading.value = false;
@@ -152,9 +152,9 @@ class LoginController extends GetxController {
       final String? accessToken = googleAuth.accessToken;
 
       if (idToken == null && accessToken == null) {
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: 'Tidak dapat mengambil kredensial dari Google',
+        CustomSnackbar.showError(
+          'Ups, Gagal Masuk!',
+          'Tidak dapat mengambil kredensial dari Google',
         );
         isGoogleLoading.value = false;
         return;
@@ -170,9 +170,9 @@ class LoginController extends GetxController {
       final String? firebaseIdToken = await userCredential.user?.getIdToken();
 
       if (firebaseIdToken == null) {
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: 'Gagal mendapatkan token autentikasi Firebase',
+        CustomSnackbar.showError(
+          'Ups, Gagal Masuk!',
+          'Gagal mendapatkan token autentikasi Firebase',
         );
         isGoogleLoading.value = false;
         return;
@@ -200,17 +200,17 @@ class LoginController extends GetxController {
         }
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Ups, Gagal Masuk!',
+          errorMessage,
         );
       }
     } catch (e, stackTrace) {
       debugPrint('Google Sign In Error: $e');
       debugPrint('Stack Trace: $stackTrace');
-      CustomErrorModal.show(
-        title: 'Ups, Gagal Masuk!',
-        message: 'Terjadi kesalahan saat login dengan Google: ${e.toString()}',
+      CustomSnackbar.showError(
+        'Ups, Gagal Masuk!',
+        'Terjadi kesalahan saat login dengan Google: ${e.toString()}',
       );
     } finally {
       isGoogleLoading.value = false;

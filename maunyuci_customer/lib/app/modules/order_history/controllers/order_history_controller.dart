@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../../data/model/transaction/transaction_response_model.dart';
 import '../../../data/repositories/transaction_repository.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 
 class OrderHistoryController extends GetxController {
   final TransactionRepository _repository = TransactionRepository();
@@ -71,7 +72,7 @@ class OrderHistoryController extends GetxController {
       allOrders.assignAll(data);
     } catch (e) {
       String errorMessage = e.toString().replaceAll('Exception: ', '');
-      Get.snackbar('Error', 'Gagal memuat riwayat pesanan: $errorMessage');
+      CustomSnackbar.showError('Error', 'Gagal memuat riwayat pesanan: $errorMessage');
     } finally {
       isLoading(false);
     }

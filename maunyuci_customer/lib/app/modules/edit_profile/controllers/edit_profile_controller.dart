@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../account/controllers/account_controller.dart';
-import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 
 class EditProfileController extends GetxController {
   final AuthRepository _repository = AuthRepository();
@@ -51,11 +54,31 @@ class EditProfileController extends GetxController {
     super.onClose();
   }
 
+  Future<String> sanitizeAndCompressImage(String originalPath) async {
+    final bytes = await File(originalPath).readAsBytes();
+    final decoded = img.decodeImage(bytes);
+    if (decoded == null) throw Exception('Gagal membaca gambar');
+
+    // Resize + paksa encode ulang sebagai JPEG RGB standar
+    final resized = img.copyResize(decoded, width: 1024);
+    final jpgBytes = img.encodeJpg(resized, quality: 85);
+
+    final newPath = '${originalPath}_sanitized.jpg';
+    await File(newPath).writeAsBytes(jpgBytes);
+    return newPath;
+  }
+
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85, // built-in compression dari image_picker
+    );
     if (image != null) {
-      profilePicturePath.value = image.path;
+      final sanitizedPath = await sanitizeAndCompressImage(image.path);
+      profilePicturePath.value = sanitizedPath;
     }
   }
 
@@ -83,13 +106,12 @@ class EditProfileController extends GetxController {
       PaintingBinding.instance.imageCache.clearLiveImages();
 
       Get.back();
-      Get.snackbar('Sukses', 'Profil berhasil diperbarui',
-          backgroundColor: Colors.green, colorText: Colors.white);
+      CustomSnackbar.showSuccess('Sukses', 'Profil berhasil diperbarui');
     } catch (e) {
       String errorMessage = e.toString().replaceAll('Exception: ', '');
-      CustomErrorModal.show(
-        title: 'Ups, Gagal Menyimpan!',
-        message: errorMessage,
+      CustomSnackbar.showError(
+        'Ups, Gagal Menyimpan!',
+        errorMessage,
       );
     } finally {
       isLoading.value = false;

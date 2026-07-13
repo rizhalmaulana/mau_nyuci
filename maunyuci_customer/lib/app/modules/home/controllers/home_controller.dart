@@ -1,16 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
 import 'package:maunyuci_customer/app/data/model/transaction/transaction_response_model.dart';
 import '../../../core/helpers/api_error_helper.dart';
-import '../../../data/model/order/order_history_model.dart';
-import '../../../data/model/transaction/transaction_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/repositories/address_repository.dart';
 import '../../../data/services/transaction_service.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 
-class HomeController extends GetxController {
+class HomeController extends GetxController with WidgetsBindingObserver {
   final UserProvider _userProvider = UserProvider();
   final TransactionService _transactionService = TransactionService();
   
@@ -23,14 +24,21 @@ class HomeController extends GetxController {
   var userLatitude = Rxn<double>();
   var userLongitude = Rxn<double>();
   
+  // Location and Permission State
+  var locationPermissionStatus = PermissionStatus.denied.obs;
+  var isGpsEnabled = false.obs;
+  var isLocationLoading = false.obs;
+  
   var currentTransactions = <TransactionResponseModel>[].obs;
   var orderHistory = <TransactionResponseModel>[].obs;
 
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     _loadUserData();
     _loadTransactionData();
+    checkLocationPermissionAndFetch();
   }
 
   void changeTabIndex(int index) {
@@ -91,14 +99,9 @@ class HomeController extends GetxController {
         // Handled by the global onUnauthorized interceptor
       } else {
         final errorMessage = handleApiError(e);
-        Get.snackbar(
+        CustomSnackbar.showError(
           'Gagal Memuat Data',
           errorMessage,
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade400,
-          colorText: Colors.white,
-          margin: const EdgeInsets.all(16),
-          borderRadius: 8,
         );
       }
     } finally {
@@ -115,6 +118,9 @@ class HomeController extends GetxController {
     if (lat != null) userLatitude.value = lat;
     if (lng != null) userLongitude.value = lng;
     
+    if (!Get.isRegistered<AddressRepository>()) {
+      Get.put(AddressRepository());
+    }
     await Get.find<AddressRepository>().saveAddress(address, lat ?? 0.0, lng ?? 0.0);
   }
 
@@ -128,5 +134,83 @@ class HomeController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      checkLocationPermissionAndFetch();
+    }
+  }
+
+  Future<void> checkLocationPermissionAndFetch() async {
+    final status = await Permission.location.status;
+    locationPermissionStatus.value = status;
+    
+    if (status.isGranted) {
+      final gpsEnabled = await Geolocator.isLocationServiceEnabled();
+      isGpsEnabled.value = gpsEnabled;
+      
+      if (gpsEnabled) {
+        if (userAddress.value == 'Belum ada alamat' || userAddress.value.isEmpty) {
+          await fetchCurrentLocation();
+        }
+      }
+    } else {
+      isGpsEnabled.value = false;
+    }
+  }
+
+  Future<void> fetchCurrentLocation() async {
+    try {
+      isLocationLoading.value = true;
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final address = await _reverseGeocode(position.latitude, position.longitude);
+      
+      await updateAddress(
+        address,
+        position.latitude,
+        position.longitude,
+      );
+    } catch (e) {
+      debugPrint('Error fetching current location: $e');
+    } finally {
+      isLocationLoading.value = false;
+    }
+  }
+
+  Future<String> _reverseGeocode(double lat, double lon) async {
+    try {
+      final dio = Dio();
+      final response = await dio.get(
+        'https://us1.locationiq.com/v1/reverse.php',
+        queryParameters: {
+          'key': 'pk.ec69b070d8e0ca24dd6cf88f750ceede',
+          'lat': lat,
+          'lon': lon,
+          'format': 'json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        return data['display_name'] ?? 'Unknown location';
+      }
+    } catch (e) {
+      debugPrint('Reverse geocode error: $e');
+      if (e is DioException && e.response?.statusCode == 429) {
+        return 'Terlalu banyak permintaan (Tunggu sebentar)';
+      }
+    }
+    return 'Unknown location';
   }
 }

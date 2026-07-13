@@ -25,18 +25,22 @@ class CustomPermissionModal extends StatelessWidget {
     this.onDeny,
   });
 
-  static Future<void> showLocationPermission({
+  static Future<bool?> showLocationPermission({
     String title = 'Izin Akses Lokasi',
     String message = 'Mau Nyuci membutuhkan akses lokasi untuk menemukan laundry terdekat.',
     String textAllow = 'Izinkan',
     String textDeny = 'Tidak',
+    VoidCallback? onAllow,
+    VoidCallback? onDeny,
   }) async {
-    await Get.dialog(
+    return await Get.dialog<bool>(
       CustomPermissionModal(
         title: title,
         message: message,
         textAllow: textAllow,
         textDeny: textDeny,
+        onAllow: onAllow,
+        onDeny: onDeny,
       ),
       barrierDismissible: false,
     );
@@ -126,9 +130,9 @@ class CustomPermissionModal extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () async {
-                  Get.back();
                   onAllow?.call();
-                  await requestLocationPermission();
+                  final granted = await requestLocationPermission();
+                  Get.back(result: granted);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -152,8 +156,8 @@ class CustomPermissionModal extends StatelessWidget {
               width: double.infinity,
               child: TextButton(
                 onPressed: () {
-                  Get.back();
                   onDeny?.call();
+                  Get.back(result: false);
                 },
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: R.h(12)),

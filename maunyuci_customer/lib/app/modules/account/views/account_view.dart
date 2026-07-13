@@ -80,6 +80,7 @@ class AccountView extends GetView<AccountController> {
                             }
                             final rawUrl = controller.profilePictureUrl.value;
                             final imgUrl = getFullImageUrl(rawUrl);
+
                             final hasValidUrl = imgUrl.isNotEmpty && imgUrl.startsWith('http');
                             if (hasValidUrl) {
                               return ClipOval(
