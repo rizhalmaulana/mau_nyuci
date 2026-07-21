@@ -25,10 +25,10 @@ class RegisterController extends GetxController {
 
   @override
   void onClose() {
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    passwordController.dispose();
+    // nameController.dispose();
+    // emailController.dispose();
+    // phoneController.dispose();
+    // passwordController.dispose();
     super.onClose();
   }
 
@@ -106,7 +106,6 @@ class RegisterController extends GetxController {
               message: 'Akun kamu sudah terdaftar.\nSilakan login untuk menikmati\nsemua fitur yang ada.',
               buttonText: 'Login',
               onPressed: () {
-                Get.back();
                 Get.offAllNamed(Routes.LOGIN);
               },
             );
@@ -115,7 +114,7 @@ class RegisterController extends GetxController {
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
         CustomSnackbar.showError(
-          'Ups, Gagal Daftar!',
+          'Maaf, Daftar Akun Gagal!',
           errorMessage,
         );
       } finally {

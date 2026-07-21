@@ -100,7 +100,7 @@ class HomeController extends GetxController with WidgetsBindingObserver {
       } else {
         final errorMessage = handleApiError(e);
         CustomSnackbar.showError(
-          'Gagal Memuat Data',
+          'Mode Offline',
           errorMessage,
         );
       }
@@ -183,6 +183,12 @@ class HomeController extends GetxController with WidgetsBindingObserver {
       );
     } catch (e) {
       debugPrint('Error fetching current location: $e');
+      String errMsg = 'Tidak dapat mendapatkan lokasi';
+      if (e is String) errMsg = e;
+      CustomSnackbar.showError(
+        'Gagal Memuat Lokasi',
+        errMsg,
+      );
     } finally {
       isLocationLoading.value = false;
     }
@@ -205,12 +211,17 @@ class HomeController extends GetxController with WidgetsBindingObserver {
         final data = response.data;
         return data['display_name'] ?? 'Unknown location';
       }
-    } catch (e) {
+    } on DioException catch (e) {
       debugPrint('Reverse geocode error: $e');
-      if (e is DioException && e.response?.statusCode == 429) {
-        return 'Terlalu banyak permintaan (Tunggu sebentar)';
+      if (e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.unknown) {
+        throw 'Koneksi internet diperlukan untuk memuat detail alamat terkini.';
       }
+      if (e.response?.statusCode == 429) {
+        throw 'Terlalu banyak permintaan (Tunggu sebentar)';
+      }
+    } catch (e) {
+      debugPrint('Reverse geocode unknown error: $e');
     }
-    return 'Unknown location';
+    throw 'Gagal mendapatkan alamat dari koordinat';
   }
 }

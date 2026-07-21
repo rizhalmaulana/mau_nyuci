@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'custom_error_modal.dart';
 
 class CustomSnackbar {
   static void show({
@@ -13,9 +14,9 @@ class CustomSnackbar {
 
     switch (type.toLowerCase()) {
       case 'error':
-        backgroundColor = Colors.red.shade600;
-        icon = Icons.error_outline;
-        break;
+        // Redirect generic error calls to the CustomErrorModal
+        CustomErrorModal.show(title: title, message: message);
+        return;
       case 'warning':
         backgroundColor = Colors.orange.shade700;
         icon = Icons.warning_amber_rounded;
@@ -62,7 +63,7 @@ class CustomSnackbar {
   }
 
   static void showError(String title, String message) {
-    show(title: title, message: message, type: 'error');
+    CustomErrorModal.show(title: title, message: message);
   }
 
   static void showWarning(String title, String message) {

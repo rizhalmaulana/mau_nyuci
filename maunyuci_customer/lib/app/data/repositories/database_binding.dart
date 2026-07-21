@@ -11,7 +11,7 @@ class DatabaseBinding extends Bindings {
     Get.put(AppDatabase(), permanent: true);
     
     Get.lazyPut(() => UserSessionRepository(Get.find<AppDatabase>()), fenix: true);
-    Get.lazyPut(() => UserProfileRepository(), fenix: true);
+    Get.lazyPut(() => UserProfileRepository(Get.find<AppDatabase>()), fenix: true);
     Get.lazyPut(() => AddressRepository(), fenix: true);
   }
 }

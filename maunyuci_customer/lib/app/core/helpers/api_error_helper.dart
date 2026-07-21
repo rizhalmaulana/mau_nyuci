@@ -52,7 +52,7 @@ String handleApiError(dynamic e) {
       return 'Koneksi terputus. Waktu permintaan habis.';
     }
     if (e.type == DioExceptionType.connectionError) {
-      return 'Gagal terhubung ke server. Pastikan Anda terhubung ke internet.';
+      return 'Tidak ada koneksi internet, Silahkan aktifkan koneksi di perangkat kamu.';
     }
     return 'Terjadi kesalahan. Silakan coba lagi.';
   }
@@ -94,8 +94,5 @@ String getFullImageUrl(String? path) {
         : '$serverUrl$path';
   }
 
-  // Cache-busting: hindari CDN/negative cache menyajikan response lama
-  // tepat setelah upload/update foto profil
-  final separator = fullUrl.contains('?') ? '&' : '?';
-  return '$fullUrl${separator}v=${DateTime.now().millisecondsSinceEpoch}';
+  return fullUrl;
 }

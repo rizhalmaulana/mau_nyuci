@@ -23,9 +23,9 @@ class CompleteProfileController extends GetxController {
 
   @override
   void onClose() {
-    phoneController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
+    // phoneController.dispose();
+    // passwordController.dispose();
+    // confirmPasswordController.dispose();
     super.onClose();
   }
 

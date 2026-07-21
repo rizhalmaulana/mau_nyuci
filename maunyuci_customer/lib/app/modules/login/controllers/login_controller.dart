@@ -33,8 +33,8 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    phoneController.dispose();
-    passwordController.dispose();
+    // phoneController.dispose();
+    // passwordController.dispose();
     super.onClose();
   }
 
@@ -126,7 +126,7 @@ class LoginController extends GetxController {
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
         CustomSnackbar.showError(
-          'Ups, Gagal Masuk!',
+          'Maaf, Login Masuk Gagal!',
           errorMessage,
         );
       } finally {
@@ -153,7 +153,7 @@ class LoginController extends GetxController {
 
       if (idToken == null && accessToken == null) {
         CustomSnackbar.showError(
-          'Ups, Gagal Masuk!',
+          'Maaf, Login Masuk Gagal!',
           'Tidak dapat mengambil kredensial dari Google',
         );
         isGoogleLoading.value = false;
@@ -171,7 +171,7 @@ class LoginController extends GetxController {
 
       if (firebaseIdToken == null) {
         CustomSnackbar.showError(
-          'Ups, Gagal Masuk!',
+          'Maaf, Login Masuk Gagal!',
           'Gagal mendapatkan token autentikasi Firebase',
         );
         isGoogleLoading.value = false;
@@ -201,7 +201,7 @@ class LoginController extends GetxController {
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
         CustomSnackbar.showError(
-          'Ups, Gagal Masuk!',
+          'Maaf, Login Masuk Gagal!',
           errorMessage,
         );
       }
@@ -209,7 +209,7 @@ class LoginController extends GetxController {
       debugPrint('Google Sign In Error: $e');
       debugPrint('Stack Trace: $stackTrace');
       CustomSnackbar.showError(
-        'Ups, Gagal Masuk!',
+        'Maaf, Login Masuk Gagal!',
         'Terjadi kesalahan saat login dengan Google: ${e.toString()}',
       );
     } finally {

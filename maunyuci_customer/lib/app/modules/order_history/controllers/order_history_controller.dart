@@ -32,7 +32,7 @@ class OrderHistoryController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchOrders();
+    fetchOrders(isRefresh: false);
   }
 
   void openFilterBottomSheet() {
@@ -64,17 +64,19 @@ class OrderHistoryController extends GetxController {
     tempPaymentStatus.value = status;
   }
 
-  Future<void> fetchOrders() async {
+  Future<void> fetchOrders({bool isRefresh = false}) async {
     try {
-      isLoading(true);
+      if (!isRefresh) isLoading(true);
       final data = await _repository.getCustomerOrders();
       data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       allOrders.assignAll(data);
     } catch (e) {
-      String errorMessage = e.toString().replaceAll('Exception: ', '');
-      CustomSnackbar.showError('Error', 'Gagal memuat riwayat pesanan: $errorMessage');
+      if (isRefresh) {
+        String errorMessage = e.toString().replaceAll('Exception: ', '');
+        CustomSnackbar.showError('Mode Offline', errorMessage);
+      }
     } finally {
-      isLoading(false);
+      if (!isRefresh) isLoading(false);
     }
   }
 

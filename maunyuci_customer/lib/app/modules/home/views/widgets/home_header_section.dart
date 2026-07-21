@@ -39,7 +39,7 @@ class HomeHeader extends GetView<HomeController> {
                     )),
                     SizedBox(height: R.h(4)),
                     Text(
-                      'Cucian kamu sudah makin banyak hari ini?',
+                      'Ada yang bisa kami bantu cuci?',
                       style: AppFonts.fInterBodySmallRegular.copyWith(
                           color: AppColors.white.withOpacity(0.8),
                           fontSize: R.sp(12)

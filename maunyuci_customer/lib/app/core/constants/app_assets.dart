@@ -39,6 +39,7 @@ class AppAssets {
   static const String iconUserRounded = '$iconPath/ic_user_rounded.svg';
   static const String iconWashing = '$iconPath/ic_washing.svg';
   static const String iconScooter = '$iconPath/ic_scooter.svg';
+  static const String iconNoSignal = '$iconPath/no_signal.svg';
 
   // Product Images
   static const String imgHoodie = '$imagePath/img_hoodie.png';

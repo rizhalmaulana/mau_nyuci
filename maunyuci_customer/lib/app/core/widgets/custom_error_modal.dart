@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import '../constants/app_assets.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_fonts.dart';
 
@@ -7,91 +9,135 @@ class CustomErrorModal extends StatelessWidget {
   final String title;
   final String message;
   final String buttonText;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
+  final bool isNoSignal;
 
   const CustomErrorModal({
     super.key,
     required this.title,
     required this.message,
     required this.buttonText,
-    required this.onPressed,
+    this.onPressed,
+    this.isNoSignal = false,
   });
 
   static void show({
     required String title,
     required String message,
-    String buttonText = 'Tutup',
+    String buttonText = 'Mengerti',
     VoidCallback? onPressed,
   }) {
-    Get.dialog(
+    if (Get.isSnackbarOpen) {
+      Get.closeCurrentSnackbar();
+    }
+    
+    final bool isOfflineError = message.toLowerCase().contains('koneksi') || 
+                                message.toLowerCase().contains('jaringan') || 
+                                message.toLowerCase().contains('offline') || 
+                                message.toLowerCase().contains('sinyal') || 
+                                message.toLowerCase().contains('timeout');
+
+    Get.bottomSheet(
       CustomErrorModal(
         title: title,
         message: message,
         buttonText: buttonText,
-        onPressed: onPressed ?? () => Get.back(),
+        onPressed: onPressed,
+        isNoSignal: isOfflineError,
       ),
-      barrierDismissible: false,
+      isScrollControlled: true,
+      isDismissible: true,
+      enableDrag: true,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40.0),
-      backgroundColor: AppColors.white,
-      surfaceTintColor: AppColors.white,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24.0, 40.0, 24.0, 24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle pill
+          Center(
+            child: Container(
+              width: 48,
+              height: 4,
               decoration: BoxDecoration(
-                color: Colors.red.shade400,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.red.shade100, width: 8),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
               ),
-              child: const Icon(Icons.close_rounded, color: Colors.white, size: 25),
             ),
-            const SizedBox(height: 21), // Jarak sama persis
-            Text(
-              title,
-              style: AppFonts.fInterBodySmallSemibold.copyWith(
-                color: AppColors.textPrimary,
+          ),
+          const SizedBox(height: 24),
+          // Error Icon
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.red.shade100,
+                width: 8,
               ),
-              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: AppFonts.fInterStatusRegular.copyWith(
-                color: AppColors.textSecondary
-              ),
-              textAlign: TextAlign.center,
+            child: isNoSignal
+                ? SvgPicture.asset(
+                    AppAssets.iconNoSignal,
+                    width: 40,
+                    height: 40,
+                    colorFilter: ColorFilter.mode(Colors.red.shade600, BlendMode.srcIn),
+                  )
+                : Icon(Icons.error_outline_rounded, color: Colors.red.shade600, size: 40),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            title,
+            style: AppFonts.fInterSubheadingSemibold.copyWith(
+              color: AppColors.textPrimary,
+              fontSize: 18,
             ),
-            const SizedBox(height: 21),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: onPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade500,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  elevation: 0,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: AppFonts.fInterBodySmallRegular.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Get.back();
+                if (onPressed != null) onPressed!();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  buttonText,
-                  style: AppFonts.fInterCaptionMedium.copyWith(color: AppColors.white),
+                elevation: 0,
+              ),
+              child: Text(
+                buttonText,
+                style: AppFonts.fInterBodyMedium.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            )
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

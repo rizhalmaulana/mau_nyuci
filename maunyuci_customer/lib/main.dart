@@ -7,6 +7,7 @@ import 'package:maunyuci_core/maunyuci_core.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/utils/responsive_helper.dart';
 import 'app/core/widgets/custom_snackbar.dart';
+import 'app/data/repositories/database_binding.dart';
 
 class MyHttpOverrides extends HttpOverrides {
   @override
@@ -56,6 +57,7 @@ void main() async {
   runApp(
     GetMaterialApp(
       title: AppConstants.appName,
+      initialBinding: DatabaseBinding(),
       initialRoute: AppPages.INITIAL,
       getPages: AppPages.routes,
       debugShowCheckedModeBanner: false,

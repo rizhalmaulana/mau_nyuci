@@ -38,7 +38,7 @@ class CustomConfirmModal extends StatelessWidget {
     Color? cancelColor,
     IconData? icon,
   }) {
-    Get.dialog(
+    Get.bottomSheet(
       CustomConfirmModal(
         title: title,
         message: message,
@@ -50,99 +50,111 @@ class CustomConfirmModal extends StatelessWidget {
         cancelColor: cancelColor ?? Colors.red,
         icon: icon,
       ),
-      barrierDismissible: false,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      insetPadding: const EdgeInsets.symmetric(horizontal: 40.0),
-      backgroundColor: AppColors.white,
-      surfaceTintColor: AppColors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (icon != null) ...[
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: confirmColor?.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: confirmColor?.withOpacity(0.2) ?? Colors.transparent,
-                      width: 8,
-                    ),
-                  ),
-                  child: Icon(icon, color: confirmColor, size: 32),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-            Text(
-              title,
-              style: AppFonts.fInterSubheadingSemibold.copyWith(
-                color: AppColors.textPrimary,
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle pill
+          Center(
+            child: Container(
+              width: 48,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: AppFonts.fInterBodySmallRegular.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
+          ),
+          const SizedBox(height: 24),
+          if (icon != null) ...[
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: confirmColor?.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: confirmColor?.withOpacity(0.2) ?? Colors.transparent,
+                    width: 8,
+                  ),
+                ),
+                child: Icon(icon, color: confirmColor, size: 32),
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: onCancel,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: cancelColor ?? Colors.red),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      textCancel,
-                      style: AppFonts.fInterBodyMedium.copyWith(
-                        color: cancelColor ?? Colors.red,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: onConfirm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: confirmColor ?? AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      textConfirm,
-                      style: AppFonts.fInterBodyMedium.copyWith(
-                        color: AppColors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            )
           ],
-        ),
+          Text(
+            title,
+            style: AppFonts.fInterSubheadingSemibold.copyWith(
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            style: AppFonts.fInterBodySmallRegular.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onCancel,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: cancelColor ?? Colors.red),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    textCancel,
+                    style: AppFonts.fInterBodyMedium.copyWith(
+                      color: cancelColor ?? Colors.red,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onConfirm,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: confirmColor ?? AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    textConfirm,
+                    style: AppFonts.fInterBodyMedium.copyWith(
+                      color: AppColors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }

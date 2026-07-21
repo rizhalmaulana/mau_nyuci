@@ -113,9 +113,11 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
         'lng': position.longitude,
       });
     } catch (e) {
+      String errMsg = 'Tidak dapat mendapatkan lokasi';
+      if (e is String) errMsg = e;
       CustomSnackbar.showError(
-        'Error',
-        'Tidak dapat mendapatkan lokasi',
+        'Gagal Memuat Lokasi',
+        errMsg,
       );
     } finally {
       setState(() {
@@ -141,13 +143,18 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
         final data = response.data;
         return data['display_name'] ?? 'Unknown location';
       }
-    } catch (e) {
+    } on DioException catch (e) {
       debugPrint('Reverse geocode error: $e');
-      if (e is DioException && e.response?.statusCode == 429) {
-        return 'Terlalu banyak permintaan (Tunggu Sebentar)';
+      if (e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.unknown) {
+        throw 'Koneksi internet diperlukan untuk memuat detail alamat terkini.';
       }
+      if (e.response?.statusCode == 429) {
+        throw 'Terlalu banyak permintaan (Tunggu Sebentar)';
+      }
+    } catch (e) {
+      debugPrint('Reverse geocode unknown error: $e');
     }
-    return 'Unknown location';
+    throw 'Gagal mendapatkan alamat dari koordinat';
   }
 
   void _selectAddress(Map<String, dynamic> address) async {

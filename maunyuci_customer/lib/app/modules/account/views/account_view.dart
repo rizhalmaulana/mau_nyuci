@@ -17,8 +17,13 @@ class AccountView extends GetView<AccountController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.only(bottom: R.r(32)),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await controller.fetchProfile();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(bottom: R.r(32)),
         child: Stack(
           children: [
             Container(
@@ -307,6 +312,7 @@ class AccountView extends GetView<AccountController> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

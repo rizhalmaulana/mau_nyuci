@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../account/controllers/account_controller.dart';
 import '../../../core/widgets/custom_snackbar.dart';
+import '../../../data/repositories/user_profile_repository.dart';
 
 class EditProfileController extends GetxController {
   final AuthRepository _repository = AuthRepository();
@@ -48,9 +49,9 @@ class EditProfileController extends GetxController {
 
   @override
   void onClose() {
-    fullNameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
+    // fullNameController.dispose();
+    // emailController.dispose();
+    // phoneController.dispose();
     super.onClose();
   }
 
@@ -101,6 +102,23 @@ class EditProfileController extends GetxController {
       _accountController.email.value = updatedProfile.email;
       _accountController.phone.value = updatedProfile.phoneNumber;
       _accountController.profilePictureUrl.value = updatedProfile.profilePictureUrl;
+      
+      try {
+        final userProfileRepo = Get.find<UserProfileRepository>();
+        await userProfileRepo.saveProfile(
+          odUserId: updatedProfile.id,
+          fullName: updatedProfile.fullName,
+          phoneNumber: updatedProfile.phoneNumber,
+          email: updatedProfile.email,
+          profilePictureUrl: updatedProfile.profilePictureUrl,
+          defaultAddress: updatedProfile.defaultAddress,
+          defaultLatitude: updatedProfile.defaultLatitude,
+          defaultLongitude: updatedProfile.defaultLongitude,
+          role: updatedProfile.role,
+        );
+      } catch (e) {
+        debugPrint("Gagal menyimpan profil ke lokal: $e");
+      }
       
       PaintingBinding.instance.imageCache.clear();
       PaintingBinding.instance.imageCache.clearLiveImages();
