@@ -28,6 +28,10 @@ class OrderHistoryController extends GetxController {
 
   final isLoading = true.obs;
   final allOrders = <TransactionResponseModel>[].obs;
+  
+  int currentPage = 1;
+  final int limit = 15;
+  var hasMoreData = true.obs;
 
   @override
   void onInit() {
@@ -66,71 +70,76 @@ class OrderHistoryController extends GetxController {
 
   Future<void> fetchOrders({bool isRefresh = false}) async {
     try {
-      if (!isRefresh) isLoading(true);
-      final data = await _repository.getCustomerOrders();
-      data.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      allOrders.assignAll(data);
+      if (isRefresh) {
+        currentPage = 1;
+        hasMoreData.value = true;
+      }
+      
+      if (!hasMoreData.value && !isRefresh) return;
+      
+      if (currentPage == 1) isLoading(true);
+
+      String? statusQuery;
+      if (selectedFilter.value == 'Status' && appliedOrderStatuses.isNotEmpty) {
+        statusQuery = _mapIndoToEnum(appliedOrderStatuses.first);
+      }
+
+      final data = await _repository.getCustomerOrders(
+        page: currentPage,
+        limit: limit, // Limit di repository akan diteruskan sebagai pageSize di provider
+        status: statusQuery,
+        dateFilter: selectedFilter.value != 'Status' ? selectedFilter.value : null,
+      );
+      
+      if (data.length < limit) {
+        hasMoreData.value = false;
+      }
+      
+      if (isRefresh || currentPage == 1) {
+        allOrders.assignAll(data);
+      } else {
+        allOrders.addAll(data);
+      }
+      currentPage++;
     } catch (e) {
       if (isRefresh) {
         String errorMessage = e.toString().replaceAll('Exception: ', '');
-        CustomSnackbar.showError('Mode Offline', errorMessage);
+        CustomSnackbar.showError('Error', errorMessage);
       }
     } finally {
-      if (!isRefresh) isLoading(false);
+      isLoading(false);
     }
   }
 
-  List<TransactionResponseModel> get filteredOrders {
-    final now = DateTime.now();
-
-    if (selectedFilter.value == 'Semua') {
-      return allOrders;
-    } else if (selectedFilter.value == '1 Minggu') {
-      final oneWeekAgo = now.subtract(const Duration(days: 7));
-      return allOrders.where((order) => order.createdAt.isAfter(oneWeekAgo)).toList();
-    } else if (selectedFilter.value == '3 Bulan') {
-      final threeMonthsAgo = now.subtract(const Duration(days: 90));
-      return allOrders.where((order) => order.createdAt.isAfter(threeMonthsAgo)).toList();
-    } else if (selectedFilter.value == 'Status') {
-      return allOrders.where((order) {
-        bool matchOrder = true;
-        if (appliedOrderStatuses.isNotEmpty) {
-          matchOrder = appliedOrderStatuses.any((status) =>
-              order.status.toLowerCase() == status.toLowerCase() ||
-              _mapStatus(status).toLowerCase() == order.status.toLowerCase());
-        }
-
-        bool matchPayment = true;
-        if (appliedPaymentStatus.value != null) {
-          matchPayment = order.paymentStatus.toLowerCase() ==
-                  appliedPaymentStatus.value!.toLowerCase() ||
-              _mapPaymentStatus(appliedPaymentStatus.value!).toLowerCase() ==
-                  order.paymentStatus.toLowerCase();
-        }
-
-        return matchOrder && matchPayment;
-      }).toList();
+  void loadNextPage() {
+    if (!isLoading.value && hasMoreData.value) {
+      fetchOrders();
     }
-    return allOrders;
   }
 
-  String _mapStatus(String idn) {
+  List<TransactionResponseModel> get filteredOrders => allOrders;
+
+  String _mapIndoToEnum(String idn) {
     switch (idn) {
       case 'Menunggu':
         return 'Pending';
       case 'Proses':
         return 'Washing';
+      case 'Sedang Dijemput':
+        return 'PickingUp';
+      case 'Sedang Diantar':
+        return 'Delivering';
       case 'Konfirmasi':
         return 'Confirmed';
       case 'Selesai':
         return 'Completed';
       case 'Pesanan Dibatalkan':
-        return 'Canceled';
+        return 'Cancelled';
       default:
         return idn;
     }
   }
-
+  
   String _mapPaymentStatus(String idn) {
     switch (idn) {
       case 'Belum Dibayar':

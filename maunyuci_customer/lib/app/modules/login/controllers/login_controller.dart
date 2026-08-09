@@ -4,8 +4,6 @@ import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:maunyuci_core/maunyuci_core.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../../core/widgets/custom_snackbar.dart';
 import '../../../core/helpers/api_error_helper.dart';
 import '../../../routes/app_pages.dart';
@@ -44,11 +42,9 @@ class LoginController extends GetxController {
 
   Future<void> _loadSavedCredentials() async {
     final savedPhone = await SecureStorageHelper.read('saved_phone');
-    final savedPassword = await SecureStorageHelper.read('saved_password');
 
-    if (savedPhone != null && savedPassword != null) {
+    if (savedPhone != null) {
       phoneController.text = savedPhone;
-      passwordController.text = savedPassword;
     }
   }
 
@@ -116,9 +112,6 @@ class LoginController extends GetxController {
             }
 
             await SecureStorageHelper.write('saved_phone', phoneController.text.trim());
-            await SecureStorageHelper.write('saved_password', passwordController.text);
-
-            _checkPermissionsAfterLogin();
 
             Get.offAllNamed(Routes.HOME);
           }
@@ -193,7 +186,6 @@ class LoginController extends GetxController {
             if (isProfileComplete == false) {
               Get.offAllNamed(Routes.COMPLETE_PROFILE);
             } else {
-              _checkPermissionsAfterLogin();
               Get.offAllNamed(Routes.HOME);
             }
           }
@@ -221,14 +213,5 @@ class LoginController extends GetxController {
     Get.toNamed(Routes.REGISTER);
   }
 
-  Future<void> _checkPermissionsAfterLogin() async {
-    await Permission.camera.request();
-    await Permission.location.request();
-    await Permission.photos.request();
-    
-    final isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!isLocationEnabled) {
-      await Geolocator.openLocationSettings();
-    }
-  }
+
 }

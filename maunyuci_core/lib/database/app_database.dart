@@ -6,28 +6,56 @@ import 'package:path/path.dart' as p;
 
 part 'app_database.g.dart';
 
-class UserSessions extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get userId => text()();
-  TextColumn get token => text()();
+
+class UserProfiles extends Table {
+  TextColumn get id => text()();
+  TextColumn get fullName => text()();
+  TextColumn get phoneNumber => text()();
+  TextColumn get email => text().nullable()();
+  TextColumn get profilePictureUrl => text().nullable()();
+  TextColumn get defaultAddress => text().nullable()();
+  RealColumn get defaultLatitude => real().nullable()();
+  RealColumn get defaultLongitude => real().nullable()();
   TextColumn get role => text()();
+  TextColumn get authProvider => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [UserSessions])
+@DriftDatabase(tables: [UserProfiles])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
-  // UserSessions queries - uses generated types
-  Future<List<UserSession>> getUserSessions({int limit = 1}) =>
-    (select(userSessions)..limit(limit)).get();
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from == 1) {
+          await m.createTable(userProfiles);
+        }
+        if (from < 3) {
+          await customStatement('DROP TABLE IF EXISTS user_sessions;');
+        }
+      },
+    );
+  }
 
-  Future<int> insertUserSession(UserSessionsCompanion session) =>
-    into(userSessions).insert(session);
 
-  Future<int> deleteAllUserSessions() => delete(userSessions).go();
+  // UserProfiles queries
+  Future<UserProfile?> getUserProfile(String id) =>
+    (select(userProfiles)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+
+  Future<int> insertOrUpdateUserProfile(UserProfilesCompanion profile) =>
+    into(userProfiles).insertOnConflictUpdate(profile);
+
+  Future<int> clearUserProfiles() => delete(userProfiles).go();
 }
 
 LazyDatabase _openConnection() {

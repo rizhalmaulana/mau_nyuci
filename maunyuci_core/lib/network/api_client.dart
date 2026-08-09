@@ -4,6 +4,7 @@ import '../storage/secure_storage_helper.dart';
 
 class ApiClient {
   late Dio dio;
+  static void Function()? onUnauthorized;
 
   ApiClient() {
     dio = Dio(BaseOptions(
@@ -23,7 +24,17 @@ class ApiClient {
       },
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 401) {
+          final path = e.requestOptions.path;
+          if (path.contains(ApiConstants.login) ||
+              path.contains(ApiConstants.firebaseAuth) ||
+              path.contains(ApiConstants.register)) {
+            return handler.next(e);
+          }
+
           await SecureStorageHelper.clearAll();
+          if (onUnauthorized != null) {
+            onUnauthorized!();
+          }
         }
         return handler.next(e);
       },

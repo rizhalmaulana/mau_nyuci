@@ -1,7 +1,7 @@
 class ApiConstants {
   // --- BASE URL ---
-  static const String baseUrl = 'http://10.167.14.43:5195/api/';
-  static const String signalRHubUrl = 'http://10.167.14.43:5195/orderHub';
+  static const String baseUrl = 'http://192.168.100.149:5195/api/';
+  static const String signalRHubUrl = 'http://192.168.100.149:5195/orderHub';
 
   // --- TIMEOUTS ---
   static const int connectionTimeout = 8000; // 8 detik (dalam milidetik)
