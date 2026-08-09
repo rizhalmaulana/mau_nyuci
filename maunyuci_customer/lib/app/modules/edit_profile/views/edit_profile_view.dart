@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/helpers/api_error_helper.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
@@ -61,6 +60,7 @@ class EditProfileView extends GetView<EditProfileController> {
                             }
                             final rawUrl = controller.currentProfilePictureUrl;
                             final imgUrl = getFullImageUrl(rawUrl);
+
                             final hasValidUrl = imgUrl.isNotEmpty && imgUrl.startsWith('http');
                             if (hasValidUrl) {
                               return ClipOval(

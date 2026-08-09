@@ -7,6 +7,8 @@ import '../../../data/repositories/auth_repository.dart';
 import '../../../routes/app_pages.dart';
 import '../../../core/widgets/custom_confirm_modal.dart';
 import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
+import '../../../data/repositories/user_profile_repository.dart';
 
 class AccountController extends GetxController {
   final AuthRepository _repository = AuthRepository();
@@ -34,12 +36,47 @@ class AccountController extends GetxController {
       phone.value = profile.phoneNumber;
       profilePictureUrl.value = profile.profilePictureUrl;
       authProvider.value = profile.authProvider;
+      
+      try {
+        final userProfileRepo = Get.find<UserProfileRepository>();
+        await userProfileRepo.saveProfile(
+          odUserId: profile.id,
+          fullName: profile.fullName,
+          phoneNumber: profile.phoneNumber,
+          email: profile.email,
+          profilePictureUrl: profile.profilePictureUrl,
+          defaultAddress: profile.defaultAddress,
+          defaultLatitude: profile.defaultLatitude,
+          defaultLongitude: profile.defaultLongitude,
+          role: profile.role,
+        );
+      } catch (e) {
+        debugPrint("Gagal menyimpan profil ke lokal: $e");
+      }
     } catch (e) {
-      fullName.value = 'Gagal memuat profil';
-      email.value = '-';
-      phone.value = '-';
-      String errorMessage = e.toString().replaceAll('Exception: ', '');
-      Get.snackbar('Error', errorMessage);
+      // Fallback ke local drift jika offline/gagal
+      try {
+        final userId = await SecureStorageHelper.read('user_id') ?? '';
+        final userProfileRepo = Get.find<UserProfileRepository>();
+        final localProfile = await userProfileRepo.getProfile(userId);
+        
+        if (localProfile != null) {
+          fullName.value = localProfile['fullName'] ?? 'User';
+          email.value = localProfile['email'] ?? '-';
+          phone.value = localProfile['phoneNumber'] ?? '-';
+          profilePictureUrl.value = localProfile['profilePictureUrl'];
+          authProvider.value = localProfile['role'] ?? 'Local'; // as fallback
+          CustomSnackbar.showError('Mode Offline', 'Gagal mengambil data terbaru, Silahkan aktifkan koneksi di perangkat kamu.');
+        } else {
+          fullName.value = 'Offline';
+          email.value = '-';
+          phone.value = '-';
+        }
+      } catch (localError) {
+        fullName.value = 'Gagal memuat profil';
+        email.value = '-';
+        phone.value = '-';
+      }
     } finally {
       isFetchingProfile.value = false;
     }
@@ -88,9 +125,9 @@ class AccountController extends GetxController {
           Get.offAllNamed(Routes.LOGIN);
         } catch (e) {
           isLoading.value = false;
-          CustomErrorModal.show(
-            title: 'Ups, Gagal Keluar!',
-            message: 'Terjadi kesalahan saat mencoba logout. Silakan coba lagi.',
+          CustomSnackbar.showError(
+            'Ups, Gagal Keluar!',
+            'Terjadi kesalahan saat mencoba logout. Silakan coba lagi.',
           );
         }
       },

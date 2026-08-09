@@ -39,7 +39,7 @@ class HomeHeader extends GetView<HomeController> {
                     )),
                     SizedBox(height: R.h(4)),
                     Text(
-                      'Cucian kamu sudah makin banyak hari ini?',
+                      'Ada yang bisa kami bantu cuci?',
                       style: AppFonts.fInterBodySmallRegular.copyWith(
                           color: AppColors.white.withOpacity(0.8),
                           fontSize: R.sp(12)
@@ -80,33 +80,36 @@ class HomeHeader extends GetView<HomeController> {
             ],
           ),
           SizedBox(height: R.h(24)),
-          _buildLocationSection(),
+          _buildLocationSection(context),
         ],
       ),
     );
   }
 
-  Widget _buildLocationSection() {
-    return FutureBuilder<PermissionStatus>(
-      future: Permission.location.status,
-      builder: (context, snapshot) {
-        final permissionStatus = snapshot.data;
+  Widget _buildLocationSection(BuildContext context) {
+    return Obx(() {
+      final permissionStatus = controller.locationPermissionStatus.value;
+      final isGpsEnabled = controller.isGpsEnabled.value;
+      final isLocationLoading = controller.isLocationLoading.value;
 
-        if (permissionStatus == null) {
-          return _buildLocationLoading();
-        }
+      if (isLocationLoading) {
+        return _buildLocationLoading();
+      }
 
-        if (permissionStatus.isDenied) {
-          return _buildLocationRequest();
-        }
+      if (permissionStatus.isDenied) {
+        return _buildLocationRequest();
+      }
 
-        if (permissionStatus.isPermanentlyDenied) {
-          return _buildLocationDenied();
-        }
+      if (permissionStatus.isPermanentlyDenied) {
+        return _buildLocationDenied();
+      }
 
-        return _buildLocationEnabled();
-      },
-    );
+      if (!isGpsEnabled) {
+        return _buildLocationGpsOff();
+      }
+
+      return _buildLocationEnabled(context);
+    });
   }
 
   Widget _buildLocationLoading() {
@@ -134,7 +137,10 @@ class HomeHeader extends GetView<HomeController> {
   Widget _buildLocationRequest() {
     return GestureDetector(
       onTap: () async {
-        await CustomPermissionModal.showLocationPermission();
+        final granted = await CustomPermissionModal.showLocationPermission();
+        if (granted == true) {
+          await controller.checkLocationPermissionAndFetch();
+        }
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(8)),
@@ -202,78 +208,71 @@ class HomeHeader extends GetView<HomeController> {
     );
   }
 
-  Widget _buildLocationEnabled() {
-    return FutureBuilder<bool>(
-      future: Geolocator.isLocationServiceEnabled(),
-      builder: (context, snapshot) {
-        final isGpsEnabled = snapshot.data ?? false;
-
-        if (!isGpsEnabled) {
-          return GestureDetector(
-            onTap: () async {
-              await Geolocator.openLocationSettings();
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(8)),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(R.r(12)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.gps_off, color: Colors.orange, size: R.r(20)),
-                  SizedBox(width: R.w(8)),
-                  Expanded(
-                    child: Text(
-                      'Nyalakan GPS untuk lokasi akurat',
-                      style: AppFonts.fInterBodySmallMedium.copyWith(color: AppColors.white),
-                    ),
-                  ),
-                  SvgPicture.asset(
-                    AppAssets.iconArrowRight,
-                    width: R.r(20),
-                    height: R.r(20),
-                    colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
-        return GestureDetector(
-          onTap: () {
-            _showLocationPicker(context);
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(8)),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(R.r(12)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.location_on, color: AppColors.white, size: R.r(20)),
-                SizedBox(width: R.w(8)),
-                Expanded(
-                  child: Obx(() => Text(
-                    controller.userAddress.value,
-                    style: AppFonts.fInterBodySmallMedium.copyWith(color: AppColors.white),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  )),
-                ),
-                SvgPicture.asset(
-                  AppAssets.iconArrowRight,
-                  width: R.r(20),
-                  height: R.r(20),
-                  colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                ),
-              ],
-            ),
-          ),
-        );
+  Widget _buildLocationGpsOff() {
+    return GestureDetector(
+      onTap: () async {
+        await Geolocator.openLocationSettings();
       },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(8)),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(R.r(12)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.gps_off, color: Colors.orange, size: R.r(20)),
+            SizedBox(width: R.w(8)),
+            Expanded(
+              child: Text(
+                'Nyalakan GPS untuk lokasi akurat',
+                style: AppFonts.fInterBodySmallMedium.copyWith(color: AppColors.white),
+              ),
+            ),
+            SvgPicture.asset(
+              AppAssets.iconArrowRight,
+              width: R.r(20),
+              height: R.r(20),
+              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationEnabled(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        _showLocationPicker(context);
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(8)),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(R.r(12)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.location_on, color: AppColors.white, size: R.r(20)),
+            SizedBox(width: R.w(8)),
+            Expanded(
+              child: Obx(() => Text(
+                controller.userAddress.value,
+                style: AppFonts.fInterBodySmallMedium.copyWith(color: AppColors.white),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              )),
+            ),
+            SvgPicture.asset(
+              AppAssets.iconArrowRight,
+              width: R.r(20),
+              height: R.r(20),
+              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

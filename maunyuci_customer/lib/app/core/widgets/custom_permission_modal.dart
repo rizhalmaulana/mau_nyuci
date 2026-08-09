@@ -25,20 +25,26 @@ class CustomPermissionModal extends StatelessWidget {
     this.onDeny,
   });
 
-  static Future<void> showLocationPermission({
+  static Future<bool?> showLocationPermission({
     String title = 'Izin Akses Lokasi',
     String message = 'Mau Nyuci membutuhkan akses lokasi untuk menemukan laundry terdekat.',
     String textAllow = 'Izinkan',
     String textDeny = 'Tidak',
+    VoidCallback? onAllow,
+    VoidCallback? onDeny,
   }) async {
-    await Get.dialog(
+    return await Get.bottomSheet<bool>(
       CustomPermissionModal(
         title: title,
         message: message,
         textAllow: textAllow,
         textDeny: textDeny,
+        onAllow: onAllow,
+        onDeny: onDeny,
       ),
-      barrierDismissible: false,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
     );
   }
 
@@ -56,118 +62,175 @@ class CustomPermissionModal extends StatelessWidget {
   }
 
   static Future<void> _showEnableGpsDialog() async {
-    await Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(R.r(20))),
-        title: Text('Nyalakan GPS'),
-        content: Text('Buka pengaturan untuk mengaktifkan GPS agar mendapat lokasi akurat'),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Nanti'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              Geolocator.openLocationSettings();
-            },
-            child: const Text('Buka Pengaturan'),
-          ),
-        ],
+    await Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 48,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Nyalakan GPS',
+              style: AppFonts.fInterSubheadingSemibold.copyWith(color: AppColors.textPrimary, fontSize: 18),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Buka pengaturan untuk mengaktifkan GPS agar mendapat lokasi akurat',
+              style: AppFonts.fInterBodySmallRegular.copyWith(color: AppColors.textSecondary, height: 1.5),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.back(),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: AppColors.primary),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Nanti', style: AppFonts.fInterBodyMedium.copyWith(color: AppColors.primary)),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Get.back();
+                      Geolocator.openLocationSettings();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 0,
+                    ),
+                    child: Text('Buka Pengaturan', style: AppFonts.fInterBodyMedium.copyWith(color: AppColors.white)),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
-      barrierDismissible: false,
+      isScrollControlled: true,
+      isDismissible: false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      insetPadding: EdgeInsets.symmetric(horizontal: R.w(32)),
-      backgroundColor: AppColors.white,
-      surfaceTintColor: AppColors.white,
-      child: Padding(
-        padding: EdgeInsets.all(R.r(24)),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: EdgeInsets.all(R.r(16)),
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Center(
+            child: Container(
+              width: 48,
+              height: 4,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.location_on_rounded,
-                color: AppColors.primary,
-                size: R.r(40),
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
               ),
             ),
-            SizedBox(height: R.h(20)),
-            Text(
-              title,
-              style: AppFonts.fInterSubheadingSemibold.copyWith(
-                color: AppColors.textPrimary,
-                fontSize: R.sp(18),
-              ),
-              textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: EdgeInsets.all(R.r(16)),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              shape: BoxShape.circle,
             ),
-            SizedBox(height: R.r(12)),
-            Text(
-              message,
-              style: AppFonts.fInterBodySmallRegular.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
-              textAlign: TextAlign.center,
+            child: Icon(
+              Icons.location_on_rounded,
+              color: AppColors.primary,
+              size: R.r(40),
             ),
-            SizedBox(height: R.h(24)),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  Get.back();
-                  onAllow?.call();
-                  await requestLocationPermission();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(vertical: R.h(16)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
+          ),
+          SizedBox(height: R.h(20)),
+          Text(
+            title,
+            style: AppFonts.fInterSubheadingSemibold.copyWith(
+              color: AppColors.textPrimary,
+              fontSize: R.sp(18),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: R.r(12)),
+          Text(
+            message,
+            style: AppFonts.fInterBodySmallRegular.copyWith(
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: R.h(32)),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                onAllow?.call();
+                final granted = await requestLocationPermission();
+                Get.back(result: granted);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: EdgeInsets.symmetric(vertical: R.h(16)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  textAllow,
-                  style: AppFonts.fInterBodyMedium.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                elevation: 0,
               ),
-            ),
-            SizedBox(height: R.h(12)),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                onPressed: () {
-                  Get.back();
-                  onDeny?.call();
-                },
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: R.h(12)),
-                ),
-                child: Text(
-                  textDeny,
-                  style: AppFonts.fInterBodyMedium.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+              child: Text(
+                textAllow,
+                style: AppFonts.fInterBodyMedium.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+          SizedBox(height: R.h(12)),
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () {
+                onDeny?.call();
+                Get.back(result: false);
+              },
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(vertical: R.h(12)),
+              ),
+              child: Text(
+                textDeny,
+                style: AppFonts.fInterBodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

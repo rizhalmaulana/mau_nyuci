@@ -39,3 +39,10 @@ android {
 flutter {
     source = "../.."
 }
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.core:core:1.13.1")
+        force("androidx.core:core-ktx:1.13.1")
+    }
+}

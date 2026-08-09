@@ -8,15 +8,11 @@ import '../../../core/constants/app_fonts.dart';
 import '../../../core/widgets/custom_text_field.dart';
 import '../../../core/utils/responsive_helper.dart';
 
-class LoginView extends StatelessWidget {
+class LoginView extends GetView<LoginController> {
   const LoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<LoginController>()
-        ? Get.find<LoginController>()
-        : Get.put(LoginController());
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(

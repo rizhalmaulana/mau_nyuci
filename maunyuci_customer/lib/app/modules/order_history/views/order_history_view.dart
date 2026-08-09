@@ -33,22 +33,35 @@ class OrderHistoryView extends GetView<OrderHistoryController> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (controller.filteredOrders.isEmpty) {
-                return Center(
-                  child: Text(
-                    "Belum ada riwayat transaksi.",
-                    style: AppFonts.fInterBodyMedium.copyWith(color: Colors.grey),
+                return RefreshIndicator(
+                  onRefresh: () => controller.fetchOrders(isRefresh: true),
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: Center(
+                        child: Text(
+                          "Belum ada riwayat transaksi.",
+                          style: AppFonts.fInterBodyMedium.copyWith(color: Colors.grey),
+                        ),
+                      ),
+                    ),
                   ),
                 );
               }
-              return ListView.builder(
-                padding: EdgeInsets.all(R.r(16)),
-                itemCount: controller.filteredOrders.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: EdgeInsets.only(bottom: R.r(16)),
-                    child: OrderItemCard(transaction: controller.filteredOrders[index]),
-                  );
-                },
+              return RefreshIndicator(
+                onRefresh: () => controller.fetchOrders(isRefresh: true),
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(R.r(16)),
+                  itemCount: controller.filteredOrders.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: R.r(16)),
+                      child: OrderItemCard(transaction: controller.filteredOrders[index]),
+                    );
+                  },
+                ),
               );
             }),
           ),

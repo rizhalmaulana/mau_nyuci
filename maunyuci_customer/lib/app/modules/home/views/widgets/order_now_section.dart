@@ -49,7 +49,7 @@ class OrderNowCard extends StatelessWidget {
                   ),
                   SizedBox(height: R.h(4)),
                   Text(
-                    'Cucian kamu menumpuk? Serahkan ke kami!',
+                    'Cucian sudah menumpuk? Serahkan ke kami!',
                     style: AppFonts.fInterCaptionRegular.copyWith(
                       color: AppColors.white.withOpacity(0.9),
                     ),

@@ -82,40 +82,53 @@ class AuthProvider {
     String? password,
   }) async {
     try {
-      final Map<String, dynamic> dataMap = {
-        'FullName': fullName,
-      };
-
-      if (phoneNumber != null && phoneNumber.isNotEmpty) dataMap['PhoneNumber'] = phoneNumber;
-      if (email != null && email.isNotEmpty) dataMap['Email'] = email;
-      if (defaultAddress != null && defaultAddress.isNotEmpty) dataMap['DefaultAddress'] = defaultAddress;
-      if (defaultLatitude != null) dataMap['DefaultLatitude'] = defaultLatitude.toString();
-      if (defaultLongitude != null) dataMap['DefaultLongitude'] = defaultLongitude.toString();
-      if (password != null && password.isNotEmpty) dataMap['Password'] = password;
-
-      final formData = FormData.fromMap(dataMap);
-
-      if (profilePicturePath != null && profilePicturePath.isNotEmpty) {
+      String? profilePictureUrl;
+      
+      // Tahap 1: Upload gambar jika ada (dan jika format filepath lokal)
+      if (profilePicturePath != null && profilePicturePath.isNotEmpty && !profilePicturePath.startsWith('http')) {
         String fileName = profilePicturePath.split('/').last;
         String lowerName = fileName.toLowerCase();
         if (!lowerName.endsWith('.jpg') && !lowerName.endsWith('.jpeg') && !lowerName.endsWith('.png')) {
           fileName = '$fileName.jpg';
         }
-        formData.files.add(
-          MapEntry(
-            'ProfilePicture',
-            await MultipartFile.fromFile(
-              profilePicturePath,
-              filename: fileName,
-            ),
+        
+        final mediaFormData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(
+            profilePicturePath,
+            filename: fileName,
+          ),
+        });
+
+        final mediaResponse = await _apiClient.dio.post(
+          ApiConstants.uploadProfilePicture,
+          data: mediaFormData,
+          options: Options(
+            sendTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 30),
           ),
         );
+        
+        if (mediaResponse.statusCode == 200 && mediaResponse.data != null) {
+          profilePictureUrl = mediaResponse.data['url'];
+        }
       }
+
+      // Tahap 2: Update profil menggunakan JSON
+      final Map<String, dynamic> dataMap = {
+        'fullName': fullName,
+      };
+
+      if (phoneNumber != null && phoneNumber.isNotEmpty) dataMap['phoneNumber'] = phoneNumber;
+      if (email != null && email.isNotEmpty) dataMap['email'] = email;
+      if (defaultAddress != null && defaultAddress.isNotEmpty) dataMap['defaultAddress'] = defaultAddress;
+      if (defaultLatitude != null) dataMap['defaultLatitude'] = defaultLatitude;
+      if (defaultLongitude != null) dataMap['defaultLongitude'] = defaultLongitude;
+      if (password != null && password.isNotEmpty) dataMap['password'] = password;
+      if (profilePictureUrl != null && profilePictureUrl.isNotEmpty) dataMap['profilePictureUrl'] = profilePictureUrl;
 
       final response = await _apiClient.dio.put(
         ApiConstants.profile,
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
+        data: dataMap,
       );
       return response;
     } on DioException catch (e) {

@@ -1,29 +1,39 @@
+import 'package:drift/drift.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
+import 'package:maunyuci_core/database/app_database.dart';
 
 class UserProfileRepository {
-  Future<Map<String, dynamic>?> getProfile(String odUserId) async {
-    final name = await SecureStorageHelper.read('full_name');
-    final phone = await SecureStorageHelper.read('phone_number');
-    final email = await SecureStorageHelper.read('email');
-    final profilePicture = await SecureStorageHelper.read('profile_picture');
-    final defaultAddress = await SecureStorageHelper.read('default_address');
-    final defaultLat = await SecureStorageHelper.read('default_latitude');
-    final defaultLng = await SecureStorageHelper.read('default_longitude');
-    final role = await SecureStorageHelper.getRole();
+  final AppDatabase _db;
 
-    if (name == null && phone == null) {
+  UserProfileRepository(this._db);
+
+  Future<Map<String, dynamic>?> getProfile(String odUserId) async {
+    UserProfile? profile;
+    if (odUserId.isNotEmpty) {
+      profile = await _db.getUserProfile(odUserId);
+    }
+    
+    if (profile == null) {
+      // Fallback ambil profil pertama yang ada (untuk kasus offline tanpa tahu user_id)
+      final allProfiles = await _db.select(_db.userProfiles).get();
+      if (allProfiles.isNotEmpty) {
+        profile = allProfiles.first;
+      }
+    }
+
+    if (profile == null) {
       return null;
     }
 
     return {
-      'fullName': name ?? '',
-      'phoneNumber': phone ?? '',
-      'email': email,
-      'profilePictureUrl': profilePicture,
-      'defaultAddress': defaultAddress,
-      'defaultLatitude': defaultLat != null ? double.tryParse(defaultLat) : null,
-      'defaultLongitude': defaultLng != null ? double.tryParse(defaultLng) : null,
-      'role': role,
+      'fullName': profile.fullName,
+      'phoneNumber': profile.phoneNumber,
+      'email': profile.email,
+      'profilePictureUrl': profile.profilePictureUrl,
+      'defaultAddress': profile.defaultAddress,
+      'defaultLatitude': profile.defaultLatitude,
+      'defaultLongitude': profile.defaultLongitude,
+      'role': profile.role,
     };
   }
 
@@ -38,27 +48,20 @@ class UserProfileRepository {
     double? defaultLongitude,
     String? role,
   }) async {
-    await SecureStorageHelper.write('full_name', fullName);
-    await SecureStorageHelper.write('phone_number', phoneNumber);
-    
-    if (email != null) {
-      await SecureStorageHelper.write('email', email);
-    }
-    if (profilePictureUrl != null) {
-      await SecureStorageHelper.write('profile_picture', profilePictureUrl);
-    }
-    if (defaultAddress != null) {
-      await SecureStorageHelper.write('default_address', defaultAddress);
-    }
-    if (defaultLatitude != null) {
-      await SecureStorageHelper.write('default_latitude', defaultLatitude.toString());
-    }
-    if (defaultLongitude != null) {
-      await SecureStorageHelper.write('default_longitude', defaultLongitude.toString());
-    }
-    if (role != null) {
-      await SecureStorageHelper.saveRole(role);
-    }
+    await _db.insertOrUpdateUserProfile(
+      UserProfilesCompanion(
+        id: Value(odUserId),
+        fullName: Value(fullName),
+        phoneNumber: Value(phoneNumber),
+        email: Value(email),
+        profilePictureUrl: Value(profilePictureUrl),
+        defaultAddress: Value(defaultAddress),
+        defaultLatitude: Value(defaultLatitude),
+        defaultLongitude: Value(defaultLongitude),
+        role: Value(role ?? 'Customer'),
+        authProvider: const Value('Local'),
+      )
+    );
   }
 
   Future<void> updateDefaultAddress(
@@ -67,18 +70,19 @@ class UserProfileRepository {
     double lat,
     double lng,
   ) async {
-    await SecureStorageHelper.write('default_address', address);
-    await SecureStorageHelper.write('default_latitude', lat.toString());
-    await SecureStorageHelper.write('default_longitude', lng.toString());
+    final currentProfile = await _db.getUserProfile(odUserId);
+    if (currentProfile != null) {
+      await _db.insertOrUpdateUserProfile(
+        currentProfile.toCompanion(true).copyWith(
+          defaultAddress: Value(address),
+          defaultLatitude: Value(lat),
+          defaultLongitude: Value(lng),
+        )
+      );
+    }
   }
 
   Future<void> clearProfile() async {
-    await SecureStorageHelper.write('full_name', '');
-    await SecureStorageHelper.write('phone_number', '');
-    await SecureStorageHelper.write('email', '');
-    await SecureStorageHelper.write('profile_picture', '');
-    await SecureStorageHelper.write('default_address', '');
-    await SecureStorageHelper.write('default_latitude', '');
-    await SecureStorageHelper.write('default_longitude', '');
+    await _db.clearUserProfiles();
   }
 }

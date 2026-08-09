@@ -8,6 +8,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_fonts.dart';
 import '../constants/app_assets.dart';
 import '../../data/repositories/address_repository.dart';
+import 'custom_snackbar.dart';
+import 'map_picker_view.dart';
 
 class CustomLocationPicker extends StatefulWidget {
   const CustomLocationPicker({super.key});
@@ -31,6 +33,9 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
   }
 
   Future<void> _loadRecentAddresses() async {
+    if (!Get.isRegistered<AddressRepository>()) {
+      Get.put(AddressRepository());
+    }
     final list = await Get.find<AddressRepository>().getRecentAddresses();
     setState(() {
       _recentAddresses = list;
@@ -52,14 +57,14 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
     try {
       final dio = Dio();
       final response = await dio.get(
-        'https://nominatim.openstreetmap.org/search',
+        'https://us1.locationiq.com/v1/search.php',
         queryParameters: {
+          'key': 'pk.ec69b070d8e0ca24dd6cf88f750ceede',
           'q': query,
           'format': 'json',
           'limit': 5,
           'addressdetails': 1,
         },
-        options: Options(headers: {'User-Agent': 'MauNyuci/1.0'}),
       );
 
       if (response.statusCode == 200) {
@@ -70,6 +75,9 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
       }
     } catch (e) {
       debugPrint('Search error: $e');
+      if (e is DioException && e.response?.statusCode == 429) {
+        CustomSnackbar.showError('Error', 'Terlalu banyak pencarian, tunggu sebentar...');
+      }
     } finally {
       setState(() {
         _isSearching = false;
@@ -78,6 +86,10 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
   }
 
   Future<void> _getCurrentLocation() async {
+    if (!Get.isRegistered<AddressRepository>()) {
+      Get.put(AddressRepository());
+    }
+    
     setState(() {
       _isLoading = true;
     });
@@ -101,11 +113,11 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
         'lng': position.longitude,
       });
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Tidak dapat获取位置信息',
-        backgroundColor: Colors.red.shade100,
-        colorText: Colors.red.shade800,
+      String errMsg = 'Tidak dapat mendapatkan lokasi';
+      if (e is String) errMsg = e;
+      CustomSnackbar.showError(
+        'Gagal Memuat Lokasi',
+        errMsg,
       );
     } finally {
       setState(() {
@@ -118,39 +130,50 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
     try {
       final dio = Dio();
       final response = await dio.get(
-        'https://nominatim.openstreetmap.org/reverse',
+        'https://us1.locationiq.com/v1/reverse.php',
         queryParameters: {
+          'key': 'pk.ec69b070d8e0ca24dd6cf88f750ceede',
           'lat': lat,
           'lon': lon,
           'format': 'json',
         },
-        options: Options(headers: {'User-Agent': 'MauNyuci/1.0'}),
       );
 
       if (response.statusCode == 200) {
         final data = response.data;
         return data['display_name'] ?? 'Unknown location';
       }
-    } catch (e) {
+    } on DioException catch (e) {
       debugPrint('Reverse geocode error: $e');
+      if (e.type == DioExceptionType.connectionError || e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.unknown) {
+        throw 'Koneksi internet diperlukan untuk memuat detail alamat terkini.';
+      }
+      if (e.response?.statusCode == 429) {
+        throw 'Terlalu banyak permintaan (Tunggu Sebentar)';
+      }
+    } catch (e) {
+      debugPrint('Reverse geocode unknown error: $e');
     }
-    return 'Unknown location';
+    throw 'Gagal mendapatkan alamat dari koordinat';
   }
 
   void _selectAddress(Map<String, dynamic> address) async {
-    final lat = double.tryParse(address['lat']?.toString() ?? '0');
-    final lon = double.tryParse(address['lon']?.toString() ?? '0');
-    
-    if (lat != null && lon != null) {
-      await Get.find<AddressRepository>().saveAddress(
-        address['display_name'],
+    final lat = double.tryParse(address['lat'].toString()) ?? 0.0;
+    final lonStr = address['lon'] ?? address['lng'];
+    final lon = double.tryParse(lonStr.toString()) ?? 0.0;
+    final displayName = address['display_name'] ?? address['address'] ?? '';
+
+    if (!Get.isRegistered<AddressRepository>()) {
+      Get.put(AddressRepository());
+    }
+    await Get.find<AddressRepository>().saveAddress(
+        displayName,
         lat,
         lon,
       );
-    }
 
     Get.back(result: {
-      'address': address['display_name'],
+      'address': displayName,
       'lat': lat,
       'lng': lon,
     });
@@ -264,6 +287,37 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
                   const SizedBox(width: 12),
                   Text(
                     'Berdasarkan Lokasi Saat Ini',
+                    style: AppFonts.fInterBodyMedium.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () async {
+              final result = await Get.to(() => const MapPickerView());
+              if (result != null) {
+                _selectAddress(result);
+              }
+            },
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.map_outlined, color: AppColors.primary),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Pilih Lewat Peta',
                     style: AppFonts.fInterBodyMedium.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,

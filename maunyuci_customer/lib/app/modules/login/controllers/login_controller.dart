@@ -4,9 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:maunyuci_core/maunyuci_core.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:geolocator/geolocator.dart';
-import '../../../core/widgets/custom_error_modal.dart';
+import '../../../core/widgets/custom_snackbar.dart';
 import '../../../core/helpers/api_error_helper.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/providers/auth_provider.dart';
@@ -33,8 +31,8 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    phoneController.dispose();
-    passwordController.dispose();
+    // phoneController.dispose();
+    // passwordController.dispose();
     super.onClose();
   }
 
@@ -44,11 +42,9 @@ class LoginController extends GetxController {
 
   Future<void> _loadSavedCredentials() async {
     final savedPhone = await SecureStorageHelper.read('saved_phone');
-    final savedPassword = await SecureStorageHelper.read('saved_password');
 
-    if (savedPhone != null && savedPassword != null) {
+    if (savedPhone != null) {
       phoneController.text = savedPhone;
-      passwordController.text = savedPassword;
     }
   }
 
@@ -116,18 +112,15 @@ class LoginController extends GetxController {
             }
 
             await SecureStorageHelper.write('saved_phone', phoneController.text.trim());
-            await SecureStorageHelper.write('saved_password', passwordController.text);
-
-            _checkPermissionsAfterLogin();
 
             Get.offAllNamed(Routes.HOME);
           }
         }
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Maaf, Login Masuk Gagal!',
+          errorMessage,
         );
       } finally {
         isLoading.value = false;
@@ -152,9 +145,9 @@ class LoginController extends GetxController {
       final String? accessToken = googleAuth.accessToken;
 
       if (idToken == null && accessToken == null) {
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: 'Tidak dapat mengambil kredensial dari Google',
+        CustomSnackbar.showError(
+          'Maaf, Login Masuk Gagal!',
+          'Tidak dapat mengambil kredensial dari Google',
         );
         isGoogleLoading.value = false;
         return;
@@ -170,9 +163,9 @@ class LoginController extends GetxController {
       final String? firebaseIdToken = await userCredential.user?.getIdToken();
 
       if (firebaseIdToken == null) {
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: 'Gagal mendapatkan token autentikasi Firebase',
+        CustomSnackbar.showError(
+          'Maaf, Login Masuk Gagal!',
+          'Gagal mendapatkan token autentikasi Firebase',
         );
         isGoogleLoading.value = false;
         return;
@@ -193,24 +186,23 @@ class LoginController extends GetxController {
             if (isProfileComplete == false) {
               Get.offAllNamed(Routes.COMPLETE_PROFILE);
             } else {
-              _checkPermissionsAfterLogin();
               Get.offAllNamed(Routes.HOME);
             }
           }
         }
       } on DioException catch (e) {
         final errorMessage = handleApiError(e);
-        CustomErrorModal.show(
-          title: 'Ups, Gagal Masuk!',
-          message: errorMessage,
+        CustomSnackbar.showError(
+          'Maaf, Login Masuk Gagal!',
+          errorMessage,
         );
       }
     } catch (e, stackTrace) {
       debugPrint('Google Sign In Error: $e');
       debugPrint('Stack Trace: $stackTrace');
-      CustomErrorModal.show(
-        title: 'Ups, Gagal Masuk!',
-        message: 'Terjadi kesalahan saat login dengan Google: ${e.toString()}',
+      CustomSnackbar.showError(
+        'Maaf, Login Masuk Gagal!',
+        'Terjadi kesalahan saat login dengan Google: ${e.toString()}',
       );
     } finally {
       isGoogleLoading.value = false;
@@ -221,14 +213,5 @@ class LoginController extends GetxController {
     Get.toNamed(Routes.REGISTER);
   }
 
-  Future<void> _checkPermissionsAfterLogin() async {
-    await Permission.camera.request();
-    await Permission.location.request();
-    await Permission.photos.request();
-    
-    final isLocationEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!isLocationEnabled) {
-      await Geolocator.openLocationSettings();
-    }
-  }
+
 }

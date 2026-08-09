@@ -3,7 +3,7 @@ library maunyuci_core;
 // Export Constants
 export 'constants/api_constants.dart';
 export 'constants/app_constants.dart';
-
+export 'constants/order_status_enum.dart';
 // Export Network
 export 'network/api_client.dart';
 export 'network/api_response.dart';
