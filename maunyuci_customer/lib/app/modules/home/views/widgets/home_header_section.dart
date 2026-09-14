@@ -48,34 +48,46 @@ class HomeHeader extends GetView<HomeController> {
                   ],
                 ),
               ),
-              Stack(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(R.r(10)),
-                    decoration: BoxDecoration(
-                      color: AppColors.black.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(R.r(16)),
-                    ),
-                    child: SvgPicture.asset(
-                      AppAssets.iconNotification,
-                      width: R.r(24),
-                      height: R.r(24),
-                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                    ),
-                  ),
-                  Positioned(
-                    top: R.h(8),
-                    right: R.w(10),
-                    child: Container(
-                      width: R.r(8),
-                      height: R.r(8),
-                      decoration: const BoxDecoration(
-                        color: Colors.redAccent,
-                        shape: BoxShape.circle,
+              GestureDetector(
+                onTap: () {
+                  Get.toNamed('/notification');
+                  // Set unread count to 0 optimistically or fetch later
+                  controller.unreadNotificationCount.value = 0;
+                },
+                child: Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(R.r(10)),
+                      decoration: BoxDecoration(
+                        color: AppColors.black.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(R.r(16)),
+                      ),
+                      child: SvgPicture.asset(
+                        AppAssets.iconNotification,
+                        width: R.r(24),
+                        height: R.r(24),
+                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
                       ),
                     ),
-                  ),
-                ],
+                    Obx(() {
+                      if (controller.unreadNotificationCount.value > 0) {
+                        return Positioned(
+                          top: R.h(8),
+                          right: R.w(10),
+                          child: Container(
+                            width: R.r(8),
+                            height: R.r(8),
+                            decoration: const BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ],
+                ),
               )
             ],
           ),

@@ -1,7 +1,4 @@
-import 'package:dio/dio.dart';
-import 'package:maunyuci_customer/app/core/helpers/api_error_helper.dart';
-import 'package:maunyuci_customer/app/data/model/transaction/transaction_response_model.dart';
-
+import '../model/transaction/transaction_response_model.dart';
 import '../providers/transaction_provider.dart';
 
 class TransactionRepository {
@@ -20,30 +17,10 @@ class TransactionRepository {
         status: status,
         dateFilter: dateFilter,
       );
-      if (response.statusCode == 200) {
-        dynamic responseData = response.data;
-        List dataList = [];
-        
-        if (responseData is Map) {
-          if (responseData.containsKey('items')) {
-            dataList = responseData['items'];
-          } else if (responseData.containsKey('data')) {
-            dataList = responseData['data'];
-          } else {
-            // Jika ada format lain di Map, fallback ke iterasi value atau throw
-            throw Exception("Format pagination tidak dikenali: keys=${responseData.keys}");
-          }
-        } else if (responseData is List) {
-          dataList = responseData;
-        } else {
-          throw Exception("Tipe response tidak dikenali: ${responseData.runtimeType}");
-        }
-
-        return dataList.map((json) => TransactionResponseModel.fromJson(json)).toList();
+      if (response.success && response.data != null) {
+        return response.data!;
       }
-      throw Exception("Gagal mengambil data transaksi");
-    } on DioException catch (e) {
-      throw Exception(handleApiError(e));
+      throw Exception(response.message ?? "Gagal mengambil data transaksi");
     } catch (e) {
       throw Exception(e.toString());
     }

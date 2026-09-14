@@ -33,8 +33,15 @@ class SplashController extends GetxController with GetSingleTickerProviderStateM
     String nextRoute = Routes.LOGIN;
     try {
       final String? token = await SecureStorageHelper.getToken();
+      final String? role = await SecureStorageHelper.getRole();
+      
       if (token != null && token.isNotEmpty) {
-        nextRoute = Routes.HOME;
+        if (role == 'Customer') {
+          nextRoute = Routes.HOME;
+        } else {
+          await SecureStorageHelper.clearAll();
+          nextRoute = Routes.LOGIN;
+        }
       }
     } catch (e) {
       nextRoute = Routes.LOGIN;

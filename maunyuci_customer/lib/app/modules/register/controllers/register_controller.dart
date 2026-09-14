@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
@@ -79,47 +78,44 @@ class RegisterController extends GetxController {
 
   Future<void> register() async {
     if (_validateForm()) {
-      try {
-        isLoading.value = true;
-        await Future.delayed(const Duration(seconds: 1));
+      isLoading.value = true;
+      await Future.delayed(const Duration(seconds: 1));
 
-        final response = await _authProvider.register(
-          fullName: nameController.text.trim(),
-          phoneNumber: phoneController.text.trim(),
-          email: emailController.text.trim().isEmpty ? null : emailController.text.trim(),
-          password: passwordController.text,
-        );
+      final response = await _authProvider.register(
+        fullName: nameController.text.trim(),
+        phoneNumber: phoneController.text.trim(),
+        email: emailController.text.trim().isEmpty ? null : emailController.text.trim(),
+        password: passwordController.text,
+      );
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          final data = response.data;
-          final String? token = data['token'];
-          final bool? isProfileComplete = data['isProfileComplete'];
+      if (response.success && response.data != null) {
+        final data = response.data;
+        final String? token = data['token'];
+        final bool? isProfileComplete = data['isProfileComplete'];
 
-          if (token != null) {
-            await SecureStorageHelper.saveToken(token);
-            await SecureStorageHelper.write('saved_phone', phoneController.text.trim());
-            await SecureStorageHelper.write('saved_password', passwordController.text);
-            await SecureStorageHelper.write('is_profile_complete', (isProfileComplete ?? true).toString());
+        if (token != null) {
+          await SecureStorageHelper.saveToken(token);
+          await SecureStorageHelper.write('saved_phone', phoneController.text.trim());
+          await SecureStorageHelper.write('saved_password', passwordController.text);
+          await SecureStorageHelper.write('is_profile_complete', (isProfileComplete ?? true).toString());
 
-            CustomSuccessModal.show(
-              title: 'Yay, berhasil!',
-              message: 'Akun kamu sudah terdaftar.\nSilakan login untuk menikmati\nsemua fitur yang ada.',
-              buttonText: 'Login',
-              onPressed: () {
-                Get.offAllNamed(Routes.LOGIN);
-              },
-            );
-          }
+          CustomSuccessModal.show(
+            title: 'Yay, berhasil!',
+            message: 'Akun kamu sudah terdaftar.\nSilakan login untuk menikmati\nsemua fitur yang ada.',
+            buttonText: 'Login',
+            onPressed: () {
+              Get.offAllNamed(Routes.LOGIN);
+            },
+          );
         }
-      } on DioException catch (e) {
-        final errorMessage = handleApiError(e);
+      } else {
         CustomSnackbar.showError(
           'Maaf, Daftar Akun Gagal!',
-          errorMessage,
+          response.message ?? 'Terjadi kesalahan sistem',
         );
-      } finally {
-        isLoading.value = false;
       }
+      
+      isLoading.value = false;
     }
   }
 

@@ -293,7 +293,7 @@ class _MapPickerViewState extends State<MapPickerView> {
                     15.0
                   );
                 } catch (e) {
-                  CustomSnackbar.showError('Error', 'Gagal mendapatkan lokasi saat ini');
+                  CustomSnackbar.showError('Mohon Maaf', 'Gagal mendapatkan lokasi saat ini');
                 }
               },
               child: const Icon(Icons.my_location, color: AppColors.primary),

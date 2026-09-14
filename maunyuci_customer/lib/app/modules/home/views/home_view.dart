@@ -13,6 +13,7 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/widgets/custom_shimmer.dart';
 import '../../../core/utils/responsive_helper.dart';
+import '../../../core/utils/menu_mapper.dart';
 
 class HomeView extends GetView<HomeController> {
   HomeView({super.key});
@@ -30,10 +31,22 @@ class HomeView extends GetView<HomeController> {
         systemOverlayStyle: isScrolled.value ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
         toolbarHeight: 0,
       ),
-      body: IndexedStack(
-        index: controller.tabIndex.value,
-        children: [
-          NotificationListener<ScrollNotification>(
+      body: Obx(() {
+        if (controller.isMenuLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.menus.isEmpty) {
+          return Center(
+            child: Text(
+              controller.menuErrorMessage.value.isNotEmpty
+                  ? controller.menuErrorMessage.value
+                  : 'Tidak ada menu tersedia',
+            ),
+          );
+        }
+
+        final homeWidget = NotificationListener<ScrollNotification>(
             onNotification: (scrollNotification) {
               if (scrollNotification is ScrollUpdateNotification) {
                 if (scrollNotification.metrics.pixels > 50 && !isScrolled.value) {
@@ -86,56 +99,56 @@ class HomeView extends GetView<HomeController> {
                 ),
               ),
             ),
+          );
+
+        return IndexedStack(
+          index: controller.tabIndex.value,
+          children: controller.menus
+              .map((menu) => MenuMapper.getScreen(menu.path, homeWidget))
+              .toList(),
+        );
+      }),
+      bottomNavigationBar: Obx(() {
+        if (controller.isMenuLoading.value || controller.menus.isEmpty) {
+          return const SizedBox.shrink(); // Hide navigation bar while loading
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: Offset(0, R.h(-4)),
+              ),
+            ],
           ),
-          const OrderHistoryView(),
-          const AccountView(),
-        ],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: Offset(0, R.h(-4)),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: controller.tabIndex.value,
-          onTap: controller.changeTabIndex,
-          backgroundColor: AppColors.white,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
-          selectedLabelStyle: AppFonts.fInterCaptionRegular.copyWith(fontWeight: FontWeight.w600, fontSize: R.sp(10)),
-          unselectedLabelStyle: AppFonts.fInterCaptionRegular.copyWith(fontSize: R.sp(10)),
-          type: BottomNavigationBarType.fixed,
-          elevation: 0,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4.0),
-                child: ImageIcon(AssetImage(AppAssets.iconHome)),
-              ),
-              label: 'Beranda',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4.0),
-                child: ImageIcon(AssetImage(AppAssets.iconRiwayat)),
-              ),
-              label: 'Riwayat',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(bottom: 4.0),
-                child: ImageIcon(AssetImage(AppAssets.iconAkun)),
-              ),
-              label: 'Akun',
-            ),
-          ],
-        ),
-      ),
+          child: BottomNavigationBar(
+            currentIndex: controller.tabIndex.value,
+            onTap: controller.changeTabIndex,
+            backgroundColor: AppColors.white,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: AppColors.textSecondary,
+            selectedLabelStyle: AppFonts.fInterStatusRegular.copyWith(fontSize: R.sp(6)),
+            unselectedLabelStyle: AppFonts.fInterStatusRegular.copyWith(fontSize: R.sp(5)),
+            type: BottomNavigationBarType.fixed,
+            elevation: 0,
+            items: controller.menus.map((menu) {
+              return BottomNavigationBarItem(
+                icon: Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: MenuMapper.getIcon(menu.icon),
+                ),
+                activeIcon: Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: MenuMapper.getIcon(menu.icon, color: AppColors.primary),
+                ),
+                label: menu.title,
+              );
+            }).toList(),
+          ),
+        );
+      }),
     ));
   }
 

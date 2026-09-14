@@ -40,4 +40,46 @@ class SignalRClient {
       await hubConnection.invoke("LeaveGroup", args: [orderId]);
     }
   }
+
+  // Fungsi untuk gabung ke grup toko (dipanggil saat di dashboard kasir)
+  Future<void> joinStoreGroup(String storeId) async {
+    if (hubConnection.state == HubConnectionState.Connected) {
+      await hubConnection.invoke("JoinStoreGroup", args: [storeId]);
+      debugPrint("Joined Store Group: $storeId");
+    }
+  }
+
+  // Fungsi untuk keluar grup toko
+  Future<void> leaveStoreGroup(String storeId) async {
+    if (hubConnection.state == HubConnectionState.Connected) {
+      await hubConnection.invoke("LeaveStoreGroup", args: [storeId]);
+      debugPrint("Left Store Group: $storeId");
+    }
+  }
+
+  // Listen event DashboardUpdated
+  void listenToDashboardUpdates(Function callback) {
+    hubConnection.on("DashboardUpdated", (arguments) {
+      debugPrint("SignalR Event Received: DashboardUpdated");
+      callback();
+    });
+  }
+
+  // Menghapus listener
+  void stopListeningToDashboardUpdates() {
+    hubConnection.off("DashboardUpdated");
+  }
+
+  // Listen event ReceiveNotification
+  void listenToNotifications(Function(List<Object?>?) callback) {
+    hubConnection.on("ReceiveNotification", (arguments) {
+      debugPrint("SignalR Event Received: ReceiveNotification");
+      callback(arguments);
+    });
+  }
+
+  // Menghapus listener notifikasi
+  void stopListeningToNotifications() {
+    hubConnection.off("ReceiveNotification");
+  }
 }

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "419320601316",
+    "project_id": "maunyuci-app",
+    "storage_bucket": "maunyuci-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:419320601316:android:5e88cb0bd8e4aeb3ea6af1",
+        "android_client_info": {
+          "package_name": "com.beyondtalent.maunyuci_customer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0rHydBrY--nJiuvpvTH-T1R5fxT3eLo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:419320601316:android:8ad301ac8a0cc2b8ea6af1",
+        "android_client_info": {
+          "package_name": "com.beyondtalent.maunyuci_store"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0rHydBrY--nJiuvpvTH-T1R5fxT3eLo8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

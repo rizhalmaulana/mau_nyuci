@@ -23,6 +23,7 @@ class OrderHistoryView extends GetView<OrderHistoryController> {
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        centerTitle: true,
       ),
       body: Column(
         children: [
