@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../constants/app_assets.dart';
 import '../constants/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants/app_fonts.dart';
 
 class CustomErrorModal extends StatelessWidget {
   final String title;
@@ -58,17 +58,18 @@ class CustomErrorModal extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 24),
+      child: SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
           // Drag handle pill
           Center(
             child: Container(
               width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.grey300,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -78,10 +79,10 @@ class CustomErrorModal extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: AppColors.danger50,
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.red.shade100,
+                color: AppColors.danger100,
                 width: 8,
               ),
             ),
@@ -90,14 +91,14 @@ class CustomErrorModal extends StatelessWidget {
                     AppAssets.iconNoSignal,
                     width: 40,
                     height: 40,
-                    colorFilter: ColorFilter.mode(Colors.red.shade600, BlendMode.srcIn),
+                    colorFilter: ColorFilter.mode(AppColors.danger600, BlendMode.srcIn),
                   )
-                : Icon(Icons.error_outline_rounded, color: Colors.red.shade600, size: 40),
+                : Icon(Icons.error_outline_rounded, color: AppColors.danger600, size: 40),
           ),
           const SizedBox(height: 20),
           Text(
             title,
-            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600).copyWith(
+            style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.w600).copyWith(
               color: AppColors.textPrimary,
               fontSize: 18,
             ),
@@ -106,7 +107,7 @@ class CustomErrorModal extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             message,
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400).copyWith(
+            style: AppFonts.inter(fontSize: 12, fontWeight: FontWeight.w400).copyWith(
               color: AppColors.textSecondary,
               height: 1.5,
             ),
@@ -121,7 +122,7 @@ class CustomErrorModal extends StatelessWidget {
                 if (onPressed != null) onPressed!();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
+                backgroundColor: AppColors.danger600,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -130,7 +131,7 @@ class CustomErrorModal extends StatelessWidget {
               ),
               child: Text(
                 buttonText,
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.black54).copyWith(
+                style: AppFonts.inter(fontSize: 14, color: AppColors.black54).copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
@@ -139,6 +140,7 @@ class CustomErrorModal extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

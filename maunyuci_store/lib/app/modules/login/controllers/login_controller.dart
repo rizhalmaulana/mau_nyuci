@@ -1,11 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../../routes/app_routes.dart';
 import '../../../data/providers/auth_provider.dart';
 import '../../../data/providers/store_provider.dart';
+import '../../../data/services/storage_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/constants/app_colors.dart';
 
 class LoginController extends GetxController {
   final phoneController = TextEditingController();
@@ -52,81 +53,103 @@ class LoginController extends GetxController {
 
   Future<void> login() async {
     if (_validateForm()) {
-      try {
-        isLoading.value = true;
-        await Future.delayed(const Duration(seconds: 1));
+      isLoading.value = true;
+      await Future.delayed(const Duration(seconds: 1));
 
-        final response = await _authProvider.login(
-          phoneController.text.trim(),
-          passwordController.text,
-        );
+      final response = await _authProvider.login(
+        phoneController.text.trim(),
+        passwordController.text,
+      );
 
-        if (response.statusCode == 200) {
-          final data = response.data;
-          final String? token = data['token'];
-          final String? role = data['role'];
-          final String? fullName = data['fullName'];
-          final bool? isProfileComplete = data['isProfileComplete'];
+      if (response.success && response.data != null) {
+        final data = response.data;
+        final String? token = data['token'];
+        final String? role = data['role'];
+        final String? storeRole = data['storeRole'];
+        final String? fullName = data['fullName'];
+        final bool? isProfileComplete = data['isProfileComplete'];
+        final String? membershipTier = data['membershipTier'];
 
-          // Validasi Kritis: Pastikan rolenya adalah Owner
-          if (role != 'Owner') {
-            // Tolak akses jika bukan Owner
-            _showErrorSnackbar(
-              'Akses Ditolak!', 
-              'Aplikasi ini khusus untuk Pemilik Toko (Owner).'
-            );
-            return;
+        // Akses dikendalikan BE via respons Menu; aplikasi hanya memastikan
+        // role yang dikenali (Owner / StoreStaff) bisa masuk.
+        if (role != 'Owner' && role != 'StoreStaff') {
+          _showErrorSnackbar(
+            'Akses Ditolak!',
+            'Akun Anda tidak memiliki akses ke aplikasi Store.'
+          );
+          isLoading.value = false;
+          return;
+        }
+
+        if (token != null) {
+          final storage = Get.find<StorageService>();
+          await storage.saveToken(token);
+          await storage.write('user_role', role!);
+          if (storeRole != null && storeRole.isNotEmpty) {
+            await storage.write('store_role', storeRole);
+          }
+          
+          if (fullName != null) {
+            await storage.write('full_name', fullName);
+          }
+          if (isProfileComplete != null) {
+            await storage.write('is_profile_complete', isProfileComplete.toString());
+          }
+          if (membershipTier != null) {
+            await storage.write('membership_tier', membershipTier);
           }
 
-          if (token != null) {
-            await SecureStorageHelper.saveToken(token);
-            await SecureStorageHelper.saveRole(role!);
-            
-            if (fullName != null) {
-              await SecureStorageHelper.write('full_name', fullName);
-            }
-            if (isProfileComplete != null) {
-              await SecureStorageHelper.write('is_profile_complete', isProfileComplete.toString());
-            }
+          // Cek status store dari backend.
+          // Staff tidak pernah diarahkan ke Register Store (hanya Owner).
+          final isStaff = role == 'StoreStaff';
+          final storeResponse = await _storeProvider.getMyStore();
+          if (storeResponse.success) {
+            final storeData = storeResponse.data;
 
-            // Cek status store dari backend
-            try {
-              final storeResponse = await _storeProvider.getMyStore();
-              if (storeResponse.statusCode == 200) {
-                final storeData = storeResponse.data;
-                
-                // Jika API me-return response dengan isStoreRegistered: false (200 OK)
-                if (storeData is Map && storeData['isStoreRegistered'] == false) {
-                  Get.offAllNamed(Routes.REGISTER_STORE);
-                  return; 
-                }
-                
-                // Jika store ada, arahkan ke HOME
-                Get.offAllNamed(Routes.HOME);
-              }
-            } on DioException catch (e) {
-              // Jika backend me-return HTTP Error (misal 400/404) dengan response isStoreRegistered
-              final errorData = e.response?.data;
-              if (errorData is Map && errorData['isStoreRegistered'] == false) {
-                Get.offAllNamed(Routes.REGISTER_STORE);
-                return;
-              }
-
-              // Menangani error umum (server down, dsb)
-              final errorMessage = ApiClient.handleErrorMessage(e.response?.data);
-              _showErrorSnackbar('Gagal Memeriksa Toko', errorMessage);
+            // Jika API me-return response dengan isStoreRegistered: false (200 OK)
+            if (!isStaff && storeData is Map && storeData['isStoreRegistered'] == false) {
+              Get.offAllNamed(Routes.REGISTER_STORE);
+              isLoading.value = false;
               return;
+            }
+            
+            // Jika store ada, simpan storeId dan arahkan ke MAIN
+            if (storeData is Map) {
+              final storeId = storeData['data'] != null ? storeData['data']['id'] : storeData['id'];
+              if (storeId != null) {
+                await storage.write('storeId', storeId.toString());
+              }
+            }
+            
+            final fcmToken = await NotificationService().getFcmToken();
+            if (fcmToken != null) {
+              final syncResponse = await _authProvider.syncFcmToken(fcmToken);
+              if (syncResponse.success) {
+                debugPrint("FCM Token berhasil disinkronisasi");
+              } else {
+                debugPrint("Gagal sinkronisasi FCM token: ${syncResponse.message}");
+              }
+            }
+
+            Get.offAllNamed(Routes.MAIN);
+          } else {
+            // Jika backend me-return HTTP Error (misal 400/404) dengan response isStoreRegistered.
+            // Staff tidak pernah diarahkan ke Register Store.
+            if (!isStaff && (storeResponse.message?.toLowerCase().contains('belum terdaftar') ?? false)) {
+              Get.offAllNamed(Routes.REGISTER_STORE);
+            } else if (isStaff) {
+              // Staff: backend menjamin store terikat; lanjut ke MAIN.
+              Get.offAllNamed(Routes.MAIN);
+            } else {
+              _showErrorSnackbar('Gagal Memeriksa Toko', storeResponse.message ?? 'Terjadi kesalahan');
             }
           }
         }
-      } on DioException catch (e) {
-        final errorMessage = ApiClient.handleErrorMessage(e.response?.data);
-        _showErrorSnackbar('Maaf, Login Masuk Gagal!', errorMessage);
-      } catch (e) {
-        _showErrorSnackbar('Error', 'Terjadi kesalahan sistem.');
-      } finally {
-        isLoading.value = false;
+      } else {
+        _showErrorSnackbar('Maaf, Login Masuk Gagal!', response.message ?? 'Terjadi kesalahan');
       }
+
+      isLoading.value = false;
     }
   }
 
@@ -150,11 +173,11 @@ class LoginController extends GetxController {
       title,
       message,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red.withOpacity(0.9),
-      colorText: Colors.white,
+      backgroundColor: AppColors.danger.withValues(alpha: 0.9),
+      colorText: AppColors.white,
       margin: const EdgeInsets.all(16),
       borderRadius: 12,
-      icon: const Icon(Icons.error_outline, color: Colors.white),
+      icon: const Icon(Icons.error_outline, color: AppColors.white),
     );
   }
 }

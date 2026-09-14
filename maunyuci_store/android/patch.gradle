@@ -1,0 +1,16 @@
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (namespace == null) {
+                    try {
+                        def manifest = new XmlParser().parse(project.file("src/main/AndroidManifest.xml"))
+                        namespace = manifest.@package
+                    } catch (Exception e) {
+                        println("Failed to set namespace for ${project.name}: ${e.message}")
+                    }
+                }
+            }
+        }
+    }
+}

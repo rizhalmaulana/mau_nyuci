@@ -4,7 +4,8 @@ import 'package:lottie/lottie.dart';
 import 'package:get/get.dart';
 import '../controllers/splash_controller.dart';
 import '../../../core/constants/app_assets.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../../core/constants/app_fonts.dart';
+import '../../../core/constants/app_colors.dart';
 
 class SplashView extends GetView<SplashController> {
   const SplashView({super.key});
@@ -18,7 +19,7 @@ class SplashView extends GetView<SplashController> {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.white,
         body: SafeArea(
           child: Stack(
             alignment: Alignment.center, // Pusatkan semua element stack
@@ -39,10 +40,10 @@ class SplashView extends GetView<SplashController> {
                         ? ''
                         : 'Versi ${controller.appVersion.value}',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
-                      color: Colors.grey,
+                      color: AppColors.grey500,
                     ),
                   )),
                 ),

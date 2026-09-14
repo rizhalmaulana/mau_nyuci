@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile, Response;
 import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../../data/providers/store_provider.dart';
 import '../../../routes/app_routes.dart';
 import '../../../core/widgets/custom_location_picker.dart';
+import '../../../core/constants/app_colors.dart';
 
 class RegisterStoreController extends GetxController {
   final nameController = TextEditingController();
@@ -20,6 +23,9 @@ class RegisterStoreController extends GetxController {
   var latitude = 0.0.obs;
   var longitude = 0.0.obs;
   var hasPickupDeliveryService = true.obs;
+  var selectedAddress = ''.obs;
+  var openTime = ''.obs;
+  var closeTime = ''.obs;
 
   var nameError = ''.obs;
   var addressError = ''.obs;
@@ -28,8 +34,29 @@ class RegisterStoreController extends GetxController {
   var closeTimeError = ''.obs;
   var pickupFeeError = ''.obs;
   var minOrderError = ''.obs;
+  var imageError = ''.obs;
 
   var isLoading = false.obs;
+
+  var selectedImage = Rx<File?>(null);
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    if (image != null) {
+      selectedImage.value = File(image.path);
+      imageError.value = '';
+    }
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    openTimeController.text = '08:00';
+    openTime.value = '08:00';
+    closeTimeController.text = '20:00';
+    closeTime.value = '20:00';
+  }
 
   void togglePickupDelivery(bool value) {
     hasPickupDeliveryService.value = value;
@@ -42,12 +69,14 @@ class RegisterStoreController extends GetxController {
     );
     if (result != null) {
       addressController.text = result['address'];
+      selectedAddress.value = result['address'];
       latitude.value = result['lat'];
       longitude.value = result['lng'];
+      addressError.value = '';
     }
   }
 
-  Future<void> selectTime(BuildContext context, TextEditingController controller) async {
+  Future<void> selectTime(BuildContext context, bool isOpenTime) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
@@ -60,7 +89,32 @@ class RegisterStoreController extends GetxController {
     );
     if (picked != null) {
       final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-      controller.text = formattedTime;
+      if (isOpenTime) {
+        openTimeController.text = formattedTime;
+        openTime.value = formattedTime;
+        openTimeError.value = '';
+      } else {
+        closeTimeController.text = formattedTime;
+        closeTime.value = formattedTime;
+        closeTimeError.value = '';
+      }
+      _validateTimeRealtime();
+    }
+  }
+
+  void _validateTimeRealtime() {
+    if (openTimeController.text.isNotEmpty && closeTimeController.text.isNotEmpty) {
+      int openH = int.parse(openTimeController.text.split(':')[0]);
+      int openM = int.parse(openTimeController.text.split(':')[1]);
+      int closeH = int.parse(closeTimeController.text.split(':')[0]);
+      int closeM = int.parse(closeTimeController.text.split(':')[1]);
+
+      int openMinutes = openH * 60 + openM;
+      int closeMinutes = closeH * 60 + closeM;
+
+      if (openMinutes > closeMinutes) {
+        closeTimeError.value = 'Waktu tutup tidak valid (harus setelah waktu buka)';
+      }
     }
   }
 
@@ -73,6 +127,7 @@ class RegisterStoreController extends GetxController {
     closeTimeError.value = '';
     pickupFeeError.value = '';
     minOrderError.value = '';
+    imageError.value = '';
 
     if (nameController.text.trim().isEmpty) {
       nameError.value = 'Nama toko tidak boleh kosong';
@@ -106,6 +161,21 @@ class RegisterStoreController extends GetxController {
       isValid = false;
     }
 
+    if (openTimeController.text.isNotEmpty && closeTimeController.text.isNotEmpty) {
+      int openH = int.parse(openTimeController.text.split(':')[0]);
+      int openM = int.parse(openTimeController.text.split(':')[1]);
+      int closeH = int.parse(closeTimeController.text.split(':')[0]);
+      int closeM = int.parse(closeTimeController.text.split(':')[1]);
+
+      int openMinutes = openH * 60 + openM;
+      int closeMinutes = closeH * 60 + closeM;
+
+      if (openMinutes > closeMinutes) {
+        closeTimeError.value = 'Waktu tutup tidak valid (harus setelah waktu buka)';
+        isValid = false;
+      }
+    }
+
     if (hasPickupDeliveryService.value) {
       if (pickupFeeController.text.isEmpty) {
         pickupFeeError.value = 'Biaya antar jemput harus diisi';
@@ -128,48 +198,81 @@ class RegisterStoreController extends GetxController {
       isValid = false;
     }
 
+    if (selectedImage.value == null) {
+      imageError.value = 'Foto toko wajib diunggah';
+      isValid = false;
+    }
+
     return isValid;
   }
 
   Future<void> registerStore() async {
     if (_validateForm()) {
-      try {
-        isLoading.value = true;
-        
-        double pickupFee = 0;
-        double minOrder = 0;
-        
-        if (hasPickupDeliveryService.value) {
-           pickupFee = double.tryParse(pickupFeeController.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
-           minOrder = double.tryParse(minOrderController.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
-        }
+      int openH = int.parse(openTimeController.text.split(':')[0]);
+      int openM = int.parse(openTimeController.text.split(':')[1]);
+      int closeH = int.parse(closeTimeController.text.split(':')[0]);
+      int closeM = int.parse(closeTimeController.text.split(':')[1]);
 
-        final data = {
-          "name": nameController.text.trim(),
-          "address": addressController.text.trim(),
-          "latitude": latitude.value,
-          "longitude": longitude.value,
-          "storePhoneNumber": phoneController.text.trim(),
-          "openTime": openTimeController.text.trim(),
-          "closeTime": closeTimeController.text.trim(),
-          "hasPickupDeliveryService": hasPickupDeliveryService.value,
-          "pickupDeliveryFee": pickupFee,
-          "minOrderForPickup": minOrder,
-        };
-
-        final response = await _storeProvider.registerStore(data);
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          Get.offAllNamed(Routes.HOME);
-        }
-      } on DioException catch (e) {
-        final errorMessage = ApiClient.handleErrorMessage(e.response?.data);
-        _showErrorSnackbar('Pendaftaran Gagal', errorMessage);
-      } catch (e) {
-        _showErrorSnackbar('Error', 'Terjadi kesalahan sistem.');
-      } finally {
-        isLoading.value = false;
+      int diffMinutes = (closeH * 60 + closeM) - (openH * 60 + openM);
+      if (diffMinutes <= 180) {
+        Get.defaultDialog(
+          title: 'Konfirmasi Waktu Buka',
+          middleText: 'Apakah Anda yakin Toko hanya buka 3 Jam atau kurang per hari?',
+          textConfirm: 'Ya, Yakin',
+          textCancel: 'Batal',
+          confirmTextColor: AppColors.white,
+          onConfirm: () {
+            Get.back(); // Tutup dialog
+            _proceedRegister();
+          },
+        );
+      } else {
+        _proceedRegister();
       }
+    }
+  }
+
+  Future<void> _proceedRegister() async {
+    try {
+      isLoading.value = true;
+      
+      double pickupFee = 0;
+      double minOrder = 0;
+      
+      if (hasPickupDeliveryService.value) {
+         pickupFee = double.tryParse(pickupFeeController.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+         minOrder = double.tryParse(minOrderController.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+      }
+
+      final data = FormData.fromMap({
+        "Name": nameController.text.trim(),
+        "Address": addressController.text.trim(),
+        "Latitude": latitude.value,
+        "Longitude": longitude.value,
+        "PhoneNumber": phoneController.text.trim(),
+        "OperatingHours": '${openTimeController.text.trim()} - ${closeTimeController.text.trim()}',
+        "OpenTime": openTimeController.text.trim(),
+        "CloseTime": closeTimeController.text.trim(),
+        "HasPickupDeliveryService": hasPickupDeliveryService.value,
+        "PickupDeliveryFee": pickupFee,
+        "MinOrderForPickup": minOrder,
+        "ImageFile": await MultipartFile.fromFile(
+          selectedImage.value!.path,
+          filename: selectedImage.value!.path.split('/').last,
+        ),
+      });
+
+      final response = await _storeProvider.registerStore(data);
+
+      if (response.success) {
+        Get.offAllNamed(Routes.HOME);
+      } else {
+        _showErrorSnackbar('Pendaftaran Gagal', response.message ?? 'Gagal mendaftar toko');
+      }
+    } catch (e) {
+      _showErrorSnackbar('Error', 'Terjadi kesalahan sistem.');
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -181,11 +284,11 @@ class RegisterStoreController extends GetxController {
       title,
       message,
       snackPosition: SnackPosition.TOP,
-      backgroundColor: Colors.red.withOpacity(0.9),
-      colorText: Colors.white,
+      backgroundColor: AppColors.danger.withValues(alpha: 0.9),
+      colorText: AppColors.white,
       margin: const EdgeInsets.all(16),
       borderRadius: 12,
-      icon: const Icon(Icons.error_outline, color: Colors.white),
+      icon: const Icon(Icons.error_outline, color: AppColors.white),
     );
   }
 }

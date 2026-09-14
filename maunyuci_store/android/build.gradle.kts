@@ -1,3 +1,5 @@
+apply(from = "patch.gradle")
+
 allprojects {
     repositories {
         google()
