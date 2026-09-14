@@ -1,6 +1,6 @@
 {
-    "name": "maunyuci_store",
-    "short_name": "maunyuci_store",
+    "name": "MauNyuci Toko",
+    "short_name": "MauNyuci Toko",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

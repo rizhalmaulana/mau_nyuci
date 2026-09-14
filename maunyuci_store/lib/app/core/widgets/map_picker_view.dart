@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -200,7 +200,7 @@ class _MapPickerViewState extends State<MapPickerView> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, -2),
                   ),
@@ -293,7 +293,7 @@ class _MapPickerViewState extends State<MapPickerView> {
                     15.0
                   );
                 } catch (e) {
-                  CustomSnackbar.showError('Error', 'Gagal mendapatkan lokasi saat ini');
+                  CustomSnackbar.showError('Mohon Maaf', 'Gagal mendapatkan lokasi saat ini');
                 }
               },
               child: const Icon(Icons.my_location, color: AppColors.primary),

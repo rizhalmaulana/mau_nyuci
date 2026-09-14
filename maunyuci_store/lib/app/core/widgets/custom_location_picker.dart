@@ -1,3 +1,4 @@
+﻿import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
   List<Map<String, dynamic>> _searchResults = [];
   bool _isLoading = false;
   bool _isSearching = false;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -62,9 +64,6 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
       }
     } catch (e) {
       debugPrint('Search error: $e');
-      if (e is DioException && e.response?.statusCode == 429) {
-        CustomSnackbar.showError('Error', 'Terlalu banyak pencarian, tunggu sebentar...');
-      }
     } finally {
       setState(() {
         _isSearching = false;
@@ -78,6 +77,31 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
     });
 
     try {
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      // Periksa apakah GPS aktif
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        // Arahkan user ke pengaturan lokasi
+        await Geolocator.openLocationSettings();
+        throw 'Layanan lokasi (GPS) belum aktif. Silakan aktifkan terlebih dahulu.';
+      }
+
+      // Periksa izin akses lokasi
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw 'Izin akses lokasi ditolak.';
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        await Geolocator.openAppSettings();
+        throw 'Izin lokasi ditolak permanen. Silakan izinkan melalui pengaturan aplikasi perangkat Anda.';
+      }
+
       final position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -225,10 +249,11 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               onChanged: (value) {
-                setState(() {});
-                Future.delayed(const Duration(milliseconds: 500), () {
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 1000), () {
                   _searchAddress(value);
                 });
+                setState(() {});
               },
             ),
           ),
@@ -239,9 +264,9 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -253,11 +278,15 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
                         )
                       : const Icon(Icons.my_location, color: AppColors.primary),
                   const SizedBox(width: 12),
-                  Text(
-                    'Berdasarkan Lokasi Saat Ini',
-                    style: AppFonts.fInterBodyMedium.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      'Berdasarkan Lokasi Saat Ini',
+                      style: AppFonts.fInterBodySmallMedium.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -278,17 +307,21 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.map_outlined, color: AppColors.primary),
                   const SizedBox(width: 12),
-                  Text(
-                    'Pilih Lewat Peta',
-                    style: AppFonts.fInterBodyMedium.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                  Expanded(
+                    child: Text(
+                      'Pilih Lewat Peta',
+                      style: AppFonts.fInterBodySmallMedium.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -343,7 +376,7 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border.withOpacity(0.3)),
+          border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -367,6 +400,7 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _searchFocus.dispose();
     super.dispose();

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'custom_error_modal.dart';
+import 'package:maunyuci_core/maunyuci_core.dart';
+import '../../core/constants/app_colors.dart';
 
 class CustomSnackbar {
   static void show({
@@ -9,7 +11,7 @@ class CustomSnackbar {
     required String type,
   }) {
     Color backgroundColor;
-    Color textColor = Colors.white;
+    Color textColor = AppColors.white;
     IconData icon;
 
     switch (type.toLowerCase()) {
@@ -18,16 +20,16 @@ class CustomSnackbar {
         CustomErrorModal.show(title: title, message: message);
         return;
       case 'warning':
-        backgroundColor = Colors.orange.shade700;
+        backgroundColor = AppColors.orange700;
         icon = Icons.warning_amber_rounded;
         break;
       case 'success':
-        backgroundColor = Colors.green.shade600;
+        backgroundColor = AppColors.success600;
         icon = Icons.check_circle_outline;
         break;
       case 'info':
       default:
-        backgroundColor = Colors.blue.shade600;
+        backgroundColor = const Color(0xFF8B5CF6); // Lighter purple, not too striking
         icon = Icons.info_outline;
         break;
     }
@@ -50,7 +52,7 @@ class CustomSnackbar {
       animationDuration: const Duration(milliseconds: 300),
       boxShadows: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.1),
+          color: AppColors.black.withValues(alpha: 0.1),
           blurRadius: 8,
           offset: const Offset(0, 4),
         )

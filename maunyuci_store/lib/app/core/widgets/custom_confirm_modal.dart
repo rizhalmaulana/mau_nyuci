@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../constants/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants/app_fonts.dart';
 
 class CustomConfirmModal extends StatelessWidget {
   final String title;
@@ -27,7 +27,7 @@ class CustomConfirmModal extends StatelessWidget {
     this.icon,
   });
 
-  static void show({
+  static Future<T?> show<T>({
     required String title,
     required String message,
     String textConfirm = 'Ya',
@@ -38,7 +38,7 @@ class CustomConfirmModal extends StatelessWidget {
     Color? cancelColor,
     IconData? icon,
   }) {
-    Get.bottomSheet(
+    return Get.bottomSheet<T>(
       CustomConfirmModal(
         title: title,
         message: message,
@@ -47,7 +47,7 @@ class CustomConfirmModal extends StatelessWidget {
         onConfirm: onConfirm,
         onCancel: onCancel ?? () => Get.back(),
         confirmColor: confirmColor ?? AppColors.primary,
-        cancelColor: cancelColor ?? Colors.red,
+        cancelColor: cancelColor ?? AppColors.danger,
         icon: icon,
       ),
       isScrollControlled: true,
@@ -63,7 +63,12 @@ class CustomConfirmModal extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      padding: EdgeInsets.only(
+        top: 12, 
+        left: 24, 
+        right: 24, 
+        bottom: 32 + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,7 +79,7 @@ class CustomConfirmModal extends StatelessWidget {
               width: 48,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: AppColors.grey300,
                 borderRadius: BorderRadius.circular(4),
               ),
             ),
@@ -85,10 +90,10 @@ class CustomConfirmModal extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: confirmColor?.withOpacity(0.1),
+                  color: confirmColor?.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: confirmColor?.withOpacity(0.2) ?? Colors.transparent,
+                    color: confirmColor?.withValues(alpha: 0.2) ?? Colors.transparent,
                     width: 8,
                   ),
                 ),
@@ -99,14 +104,14 @@ class CustomConfirmModal extends StatelessWidget {
           ],
           Text(
             title,
-            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600).copyWith(
+            style: AppFonts.inter(fontSize: 16, fontWeight: FontWeight.w600).copyWith(
               color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
           Text(
             message,
-            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400).copyWith(
+            style: AppFonts.inter(fontSize: 12, fontWeight: FontWeight.w400).copyWith(
               color: AppColors.textSecondary,
               height: 1.5,
             ),
@@ -119,15 +124,15 @@ class CustomConfirmModal extends StatelessWidget {
                   onPressed: onCancel,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: cancelColor ?? Colors.red),
+                    side: BorderSide(color: cancelColor ?? AppColors.danger),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: Text(
                     textCancel,
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500).copyWith(
-                      color: cancelColor ?? Colors.red,
+                    style: AppFonts.inter(fontSize: 14, fontWeight: FontWeight.w500).copyWith(
+                      color: cancelColor ?? AppColors.danger,
                     ),
                   ),
                 ),
@@ -146,7 +151,7 @@ class CustomConfirmModal extends StatelessWidget {
                   ),
                   child: Text(
                     textConfirm,
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w500).copyWith(
+                    style: AppFonts.inter(fontSize: 14, fontWeight: FontWeight.w500).copyWith(
                       color: AppColors.white,
                     ),
                   ),

@@ -39,6 +39,12 @@ dependencies:
   url_launcher: ^6.2.4
   lottie: ^3.3.1
   package_info_plus: ^9.0.1
+  flutter_secure_storage: ^9.2.4
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.6.0
+  flutter_local_notifications: ^20.1.0
+  blue_thermal_printer: ^1.2.3
+  fl_chart: ^0.66.0
 
 dev_dependencies:
   flutter_test:
