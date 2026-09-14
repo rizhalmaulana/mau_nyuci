@@ -15,6 +15,8 @@ import '../modules/edit_profile/bindings/edit_profile_binding.dart';
 import '../modules/edit_profile/views/edit_profile_view.dart';
 import '../modules/change_password/bindings/change_password_binding.dart';
 import '../modules/change_password/views/change_password_view.dart';
+import '../modules/notification/bindings/notification_binding.dart';
+import '../modules/notification/views/notification_view.dart';
 part 'app_routes.dart';
 
 class AppPages {
@@ -25,6 +27,7 @@ class AppPages {
   static const REGISTER = Routes.REGISTER;
   static const HOME = Routes.HOME;
   static const ACCOUNT = Routes.ACCOUNT;
+  static const NOTIFICATION = Routes.NOTIFICATION;
 
   static final routes = [
     GetPage(
@@ -74,6 +77,12 @@ class AppPages {
       page: () => const ChangePasswordView(),
       binding: ChangePasswordBinding(),
       transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: Routes.NOTIFICATION,
+      page: () => const NotificationView(),
+      binding: NotificationBinding(),
+      transition: Transition.rightToLeft,
     ),
   ];
 }

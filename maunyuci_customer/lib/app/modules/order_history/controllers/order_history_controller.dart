@@ -104,7 +104,7 @@ class OrderHistoryController extends GetxController {
     } catch (e) {
       if (isRefresh) {
         String errorMessage = e.toString().replaceAll('Exception: ', '');
-        CustomSnackbar.showError('Error', errorMessage);
+        CustomSnackbar.showError('Mohon Maaf', errorMessage);
       }
     } finally {
       isLoading(false);

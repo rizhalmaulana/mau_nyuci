@@ -1,19 +1,23 @@
-import 'package:dio/dio.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
+import '../models/user_model.dart';
 
 class UserProvider {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClientNetwork _network = ApiClientNetwork();
 
-  Future<Response> getProfile() async {
-    try {
-      final response = await _apiClient.dio.get(ApiConstants.profile);
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+  Future<ApiResponse<UserModel>> getProfile() async {
+    return await _network.getReq<UserModel>(
+      ApiConstants.profile,
+      fromJson: (data) {
+        if (data is Map<String, dynamic>) {
+          if (data['id'] != null) return UserModel.fromJson(data);
+          if (data['data'] != null) return UserModel.fromJson(data['data']);
+        }
+        return UserModel.fromJson({});
+      },
+    );
   }
 
-  Future<Response> updateProfile({
+  Future<ApiResponse<UserModel>> updateProfile({
     String? fullName,
     String? phoneNumber,
     String? email,
@@ -22,24 +26,26 @@ class UserProvider {
     double? defaultLatitude,
     double? defaultLongitude,
   }) async {
-    try {
-      final data = <String, dynamic>{};
-      
-      if (fullName != null) data['fullName'] = fullName;
-      if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
-      if (email != null) data['email'] = email;
-      if (profilePictureUrl != null) data['profilePictureUrl'] = profilePictureUrl;
-      if (defaultAddress != null) data['defaultAddress'] = defaultAddress;
-      if (defaultLatitude != null) data['defaultLatitude'] = defaultLatitude;
-      if (defaultLongitude != null) data['defaultLongitude'] = defaultLongitude;
+    final data = <String, dynamic>{};
+    
+    if (fullName != null) data['fullName'] = fullName;
+    if (phoneNumber != null) data['phoneNumber'] = phoneNumber;
+    if (email != null) data['email'] = email;
+    if (profilePictureUrl != null) data['profilePictureUrl'] = profilePictureUrl;
+    if (defaultAddress != null) data['defaultAddress'] = defaultAddress;
+    if (defaultLatitude != null) data['defaultLatitude'] = defaultLatitude;
+    if (defaultLongitude != null) data['defaultLongitude'] = defaultLongitude;
 
-      final response = await _apiClient.dio.put(
-        ApiConstants.profile,
-        data: data,
-      );
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+    return await _network.putReq<UserModel>(
+      ApiConstants.profile,
+      data: data,
+      fromJson: (data) {
+        if (data is Map<String, dynamic>) {
+          if (data['data'] != null) return UserModel.fromJson(data['data']);
+          return UserModel.fromJson(data);
+        }
+        return UserModel.fromJson({});
+      },
+    );
   }
 }

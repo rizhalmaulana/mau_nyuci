@@ -1,11 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../../core/widgets/custom_snackbar.dart';
-import '../../../core/helpers/api_error_helper.dart';
 import '../../../routes/app_pages.dart';
 import '../../../data/providers/auth_provider.dart';
 
@@ -83,48 +81,63 @@ class LoginController extends GetxController {
 
   Future<void> login() async {
     if (_validateForm()) {
-      try {
-        isLoading.value = true;
-        await Future.delayed(const Duration(seconds: 1));
+      isLoading.value = true;
+      await Future.delayed(const Duration(seconds: 1));
 
-        final response = await _authProvider.login(
-          phoneController.text.trim(),
-          passwordController.text,
-        );
+      final response = await _authProvider.login(
+        phoneController.text.trim(),
+        passwordController.text,
+      );
 
-        if (response.statusCode == 200) {
-          final data = response.data;
-          final String? token = data['token'];
-          final String? fullName = data['fullName'];
-          final String? role = data['role'];
-          final bool? isProfileComplete = data['isProfileComplete'];
+      if (response.success && response.data != null) {
+        final data = response.data;
+        final String? token = data['token'];
+        final String? fullName = data['fullName'];
+        final String? role = data['role'];
+        final bool? isProfileComplete = data['isProfileComplete'];
 
-          if (token != null) {
-            await SecureStorageHelper.saveToken(token);
-            if (role != null) {
-              await SecureStorageHelper.saveRole(role);
-            }
-            if (fullName != null) {
-              await SecureStorageHelper.write('full_name', fullName);
-            }
-            if (isProfileComplete != null) {
-              await SecureStorageHelper.write('is_profile_complete', isProfileComplete.toString());
-            }
-
-            await SecureStorageHelper.write('saved_phone', phoneController.text.trim());
-
-            Get.offAllNamed(Routes.HOME);
-          }
+        if (role != 'Customer') {
+          CustomSnackbar.showError(
+            'Akses Ditolak!',
+            'Aplikasi ini khusus untuk Pelanggan (Customer).',
+          );
+          isLoading.value = false;
+          return;
         }
-      } on DioException catch (e) {
-        final errorMessage = handleApiError(e);
+
+        if (token != null) {
+          await SecureStorageHelper.saveToken(token);
+          if (role != null) {
+            await SecureStorageHelper.saveRole(role);
+          }
+          if (fullName != null) {
+            await SecureStorageHelper.write('full_name', fullName);
+          }
+          if (isProfileComplete != null) {
+            await SecureStorageHelper.write('is_profile_complete', isProfileComplete.toString());
+          }
+
+          await SecureStorageHelper.write('saved_phone', phoneController.text.trim());
+
+          final fcmToken = await NotificationService().getFcmToken();
+          if (fcmToken != null) {
+            final syncResponse = await _authProvider.syncFcmToken(fcmToken);
+            if (syncResponse.success) {
+              debugPrint("FCM Token berhasil disinkronisasi");
+            } else {
+              debugPrint("Gagal sinkronisasi FCM token: ${syncResponse.message}");
+            }
+          }
+
+          Get.offAllNamed(Routes.HOME);
+        }
+      } else {
         CustomSnackbar.showError(
           'Maaf, Login Masuk Gagal!',
-          errorMessage,
+          response.message ?? 'Terjadi kesalahan sistem',
         );
-      } finally {
-        isLoading.value = false;
       }
+      isLoading.value = false;
     }
   }
 
@@ -171,30 +184,47 @@ class LoginController extends GetxController {
         return;
       }
 
-      try {
-        final response = await _authProvider.firebaseAuth(firebaseIdToken);
+      final response = await _authProvider.firebaseAuth(firebaseIdToken);
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          final data = response.data;
-          final String? token = data['token'];
-          final bool? isProfileComplete = data['isProfileComplete'];
+      if (response.success && response.data != null) {
+        final data = response.data;
+        final String? token = data['token'];
+        final String? role = data['role'];
+        final bool? isProfileComplete = data['isProfileComplete'];
 
-          if (token != null) {
-            await SecureStorageHelper.saveToken(token);
-            await SecureStorageHelper.write('is_profile_complete', (isProfileComplete ?? false).toString());
+        if (role != null && role != 'Customer') {
+          CustomSnackbar.showError(
+            'Akses Ditolak!',
+            'Aplikasi ini khusus untuk Pelanggan (Customer).',
+          );
+          isGoogleLoading.value = false;
+          return;
+        }
 
-            if (isProfileComplete == false) {
-              Get.offAllNamed(Routes.COMPLETE_PROFILE);
+        if (token != null) {
+          await SecureStorageHelper.saveToken(token);
+          await SecureStorageHelper.write('is_profile_complete', (isProfileComplete ?? false).toString());
+
+          final fcmToken = await NotificationService().getFcmToken();
+          if (fcmToken != null) {
+            final syncResponse = await _authProvider.syncFcmToken(fcmToken);
+            if (syncResponse.success) {
+              debugPrint("FCM Token berhasil disinkronisasi");
             } else {
-              Get.offAllNamed(Routes.HOME);
+              debugPrint("Gagal sinkronisasi FCM token: ${syncResponse.message}");
             }
           }
+
+          if (isProfileComplete == false) {
+            Get.offAllNamed(Routes.COMPLETE_PROFILE);
+          } else {
+            Get.offAllNamed(Routes.HOME);
+          }
         }
-      } on DioException catch (e) {
-        final errorMessage = handleApiError(e);
+      } else {
         CustomSnackbar.showError(
           'Maaf, Login Masuk Gagal!',
-          errorMessage,
+          response.message ?? 'Terjadi kesalahan sistem',
         );
       }
     } catch (e, stackTrace) {

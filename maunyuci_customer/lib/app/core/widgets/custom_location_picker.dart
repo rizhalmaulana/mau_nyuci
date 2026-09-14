@@ -76,7 +76,7 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
     } catch (e) {
       debugPrint('Search error: $e');
       if (e is DioException && e.response?.statusCode == 429) {
-        CustomSnackbar.showError('Error', 'Terlalu banyak pencarian, tunggu sebentar...');
+        CustomSnackbar.showError('Mohon Maaf', 'Terlalu banyak pencarian, tunggu sebentar...');
       }
     } finally {
       setState(() {

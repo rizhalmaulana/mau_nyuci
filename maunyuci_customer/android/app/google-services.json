@@ -1,44 +1,26 @@
 {
   "project_info": {
-    "project_number": "565866893521",
-    "project_id": "mau-nyuci-customer",
-    "storage_bucket": "mau-nyuci-customer.firebasestorage.app"
+    "project_number": "419320601316",
+    "project_id": "maunyuci-app",
+    "storage_bucket": "maunyuci-app.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:565866893521:android:2c17061bd5cb82502ff5f0",
+        "mobilesdk_app_id": "1:419320601316:android:5e88cb0bd8e4aeb3ea6af1",
         "android_client_info": {
           "package_name": "com.beyondtalent.maunyuci_customer"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "565866893521-eholf1lcrn71j5bhatv0jlfmuc03gff2.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.beyondtalent.maunyuci_customer",
-            "certificate_hash": "b261892d810c2468a809cb688ea1cf7c28e564b8"
-          }
-        },
-        {
-          "client_id": "565866893521-0t6eg0nbmo4hufkvl4sqlaqkibnfq8t8.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB3poXEq34YKOE02ZWQ9_W2meKU-b4Cu8Y"
+          "current_key": "AIzaSyC0rHydBrY--nJiuvpvTH-T1R5fxT3eLo8"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "565866893521-0t6eg0nbmo4hufkvl4sqlaqkibnfq8t8.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

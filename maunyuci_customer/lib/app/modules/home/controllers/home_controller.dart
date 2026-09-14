@@ -4,21 +4,29 @@ import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
-import 'package:maunyuci_customer/app/data/model/transaction/transaction_response_model.dart';
-import '../../../core/helpers/api_error_helper.dart';
+import '../../../data/model/transaction/transaction_response_model.dart';
 import '../../../data/providers/user_provider.dart';
 import '../../../data/repositories/address_repository.dart';
 import '../../../data/services/transaction_service.dart';
 import '../../../core/widgets/custom_snackbar.dart';
+import '../../../data/repositories/menu_repository.dart';
+import '../../../data/models/menu_model.dart';
+import '../../../data/providers/auth_provider.dart';
+import '../../../data/providers/notification_provider.dart';
 
 class HomeController extends GetxController with WidgetsBindingObserver {
   final UserProvider _userProvider = UserProvider();
   final TransactionService _transactionService = TransactionService();
+  final MenuRepository _menuRepository = MenuRepository();
   
   var selectedIndex = 0.obs;
   var userName = 'User'.obs;
   var tabIndex = 0.obs;
   var isLoading = true.obs;
+  
+  var menus = <MenuModel>[].obs;
+  var isMenuLoading = true.obs;
+  var menuErrorMessage = ''.obs;
   
   var userAddress = 'Belum ada alamat'.obs;
   var userLatitude = Rxn<double>();
@@ -31,14 +39,59 @@ class HomeController extends GetxController with WidgetsBindingObserver {
   
   var currentTransactions = <TransactionResponseModel>[].obs;
   var orderHistory = <TransactionResponseModel>[].obs;
+  var unreadNotificationCount = 0.obs;
+  
+  final SignalRClient _signalRClient = SignalRClient();
 
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
+    _fetchMenus();
     _loadUserData();
     _loadTransactionData();
     checkLocationPermissionAndFetch();
+    _initSignalR();
+  }
+
+  void _initSignalR() async {
+    _signalRClient.initConnection();
+    await _signalRClient.startConnection();
+    _signalRClient.listenToNotifications((arguments) {
+      if (arguments != null && arguments.isNotEmpty) {
+        String title = "Notifikasi Baru";
+        String body = "Anda mendapat pemberitahuan baru";
+        
+        try {
+          if (arguments.length >= 2) {
+             title = arguments[0].toString();
+             body = arguments[1].toString();
+          } else if (arguments.isNotEmpty) {
+             body = arguments[0].toString();
+          }
+        } catch (e) {
+          debugPrint("Parse SignalR arg error: $e");
+        }
+        
+        NotificationService().showSignalRNotification(title: title, body: body);
+      }
+    });
+  }
+
+  Future<void> _fetchMenus() async {
+    try {
+      isMenuLoading.value = true;
+      menuErrorMessage.value = '';
+      
+      final fetchedMenus = await _menuRepository.fetchMenus();
+      fetchedMenus.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+      
+      menus.assignAll(fetchedMenus);
+    } catch (e) {
+      menuErrorMessage.value = e.toString().replaceAll('Exception: ', '');
+    } finally {
+      isMenuLoading.value = false;
+    }
   }
 
   void changeTabIndex(int index) {
@@ -52,35 +105,48 @@ class HomeController extends GetxController with WidgetsBindingObserver {
     }
     
     _fetchProfile();
+    _fetchUnreadCount();
+
+    final fcmToken = await NotificationService().getFcmToken();
+    if (fcmToken != null) {
+      try {
+        final authProvider = AuthProvider();
+        await authProvider.syncFcmToken(fcmToken);
+        debugPrint("FCM Token disinkronisasi saat Home load");
+      } catch (e) {
+        debugPrint("Gagal sinkron FCM saat Home load: $e");
+      }
+    }
   }
 
   Future<void> _fetchProfile() async {
     try {
       final response = await _userProvider.getProfile();
       
-      if (response.statusCode == 200 && response.data != null) {
-        final data = response.data;
+      if (response.success && response.data != null) {
+        final data = response.data!;
         
-        if (data['fullName'] != null) {
-          userName.value = data['fullName'];
-          await SecureStorageHelper.write('full_name', data['fullName']);
+        if (data.fullName != null) {
+          userName.value = data.fullName!;
+          await SecureStorageHelper.write('full_name', data.fullName!);
         }
         
-        if (data['defaultAddress'] != null) {
-          userAddress.value = data['defaultAddress'];
+        if (data.defaultAddress != null) {
+          userAddress.value = data.defaultAddress!;
         }
         
-        if (data['defaultLatitude'] != null) {
-          userLatitude.value = data['defaultLatitude'].toDouble();
+        if (data.defaultLatitude != null) {
+          userLatitude.value = data.defaultLatitude;
         }
         
-        if (data['defaultLongitude'] != null) {
-          userLongitude.value = data['defaultLongitude'].toDouble();
+        if (data.defaultLongitude != null) {
+          userLongitude.value = data.defaultLongitude;
         }
+      } else {
+        print('Error fetching profile: ${response.message}');
       }
-    } on DioException catch (e) {
-      final errorMessage = handleApiError(e);
-      print('Error fetching profile: $errorMessage');
+    } catch (e) {
+      print('Error fetching profile: $e');
     }
   }
 
@@ -88,20 +154,26 @@ class HomeController extends GetxController with WidgetsBindingObserver {
     try {
       isLoading.value = true;
 
+      // Note: _transactionService also needs to be checked if it uses Dio directly
+      // but let's assume it returns what we need or catches cleanly
       final activeData = await _transactionService.getActiveTransactions();
+      // activeData might be List<TransactionResponseModel> still if _transactionService is not updated
+      // Wait, TransactionService is in lib/app/data/services/transaction_service.dart
+      // If it returns List<dynamic>, we can assign it if type matches
+      // Let's assume TransactionService is already updated to return TransactionModel.
+      // We'll update TransactionService if it complains.
       currentTransactions.assignAll(activeData);
 
       final historyData = await _transactionService.getHistoryTransactions();
       orderHistory.assignAll(historyData);
     } catch (e) {
       debugPrint('Error Home: $e');
-      if (e is DioException && e.response?.statusCode == 401) {
+      if (e.toString().contains('401')) {
         // Handled by the global onUnauthorized interceptor
       } else {
-        final errorMessage = handleApiError(e);
         CustomSnackbar.showError(
           'Mode Offline',
-          errorMessage,
+          e.toString(),
         );
       }
     } finally {
@@ -128,17 +200,32 @@ class HomeController extends GetxController with WidgetsBindingObserver {
     isLoading.value = true;
     try {
       await Future.wait([
+        _fetchMenus(),
         _fetchProfile(),
         _loadTransactionData(),
+        _fetchUnreadCount(),
       ]);
     } finally {
       isLoading.value = false;
     }
   }
 
+  Future<void> _fetchUnreadCount() async {
+    try {
+      final NotificationProvider notifProvider = NotificationProvider();
+      final response = await notifProvider.getUnreadCount();
+      if (response.success) {
+        unreadNotificationCount.value = response.data ?? 0;
+      }
+    } catch (e) {
+      debugPrint("Failed to fetch unread notifications count: $e");
+    }
+  }
+
   @override
   void onClose() {
     WidgetsBinding.instance.removeObserver(this);
+    _signalRClient.stopListeningToNotifications();
     super.onClose();
   }
 

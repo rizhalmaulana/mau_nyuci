@@ -1,12 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:maunyuci_core/constants/api_constants.dart';
-import 'package:maunyuci_core/network/api_client.dart';
+import 'package:maunyuci_core/maunyuci_core.dart';
+import '../model/transaction/transaction_response_model.dart';
 
 class TransactionProvider {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClientNetwork _network = ApiClientNetwork();
 
-  Future<Response> fetchTransactionsCustomer({
+  Future<ApiResponse<List<TransactionResponseModel>>> fetchTransactionsCustomer({
     int page = 1,
     int limit = 15,
     String? status,
@@ -14,7 +13,7 @@ class TransactionProvider {
   }) async {
     final Map<String, dynamic> query = {
       'page': page,
-      'pageSize': limit, // Sesuaikan dengan API yang menggunakan pageSize
+      'pageSize': limit,
     };
     if (status != null && status.isNotEmpty && status != 'Semua') {
       query['status'] = status;
@@ -22,9 +21,17 @@ class TransactionProvider {
     if (dateFilter != null && dateFilter.isNotEmpty && dateFilter != 'Semua') {
       query['dateFilter'] = dateFilter;
     }
-    return await _apiClient.dio.get(
+    return await _network.getReq<List<TransactionResponseModel>>(
       ApiConstants.customerOrders,
       queryParameters: query,
+      fromJson: (data) {
+        if (data is List) {
+          return data.map((e) => TransactionResponseModel.fromJson(e)).toList();
+        } else if (data is Map<String, dynamic> && data['data'] is List) {
+          return (data['data'] as List).map((e) => TransactionResponseModel.fromJson(e)).toList();
+        }
+        return [];
+      },
     );
   }
 }

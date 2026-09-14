@@ -63,7 +63,12 @@ class CustomConfirmModal extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      padding: EdgeInsets.only(
+        top: 12, 
+        left: 24, 
+        right: 24, 
+        bottom: 32 + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

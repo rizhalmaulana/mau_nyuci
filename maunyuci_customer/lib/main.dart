@@ -21,6 +21,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   HttpOverrides.global = MyHttpOverrides();
   await Firebase.initializeApp();
+  await NotificationService().init();
 
   // Setup global 401 unauthorized redirect to login
   bool isRedirecting = false;

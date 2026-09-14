@@ -1,77 +1,59 @@
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart'; // Still needed for FormData
 import 'package:flutter/cupertino.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
+import '../models/user_model.dart';
 
 class AuthProvider {
-  final ApiClient _apiClient = ApiClient();
+  final ApiClientNetwork _network = ApiClientNetwork();
 
-  Future<Response> login(String phoneNumber, String password) async {
-    try {
-      final response = await _apiClient.dio.post(
-        ApiConstants.login,
-        data: {
-          "phoneNumber": phoneNumber,
-          "password": password,
-        },
-      );
-      return response;
-    } on DioException catch (e) {
-      debugPrint("Error Message: ${e.message}");
-      rethrow;
-    }
+  Future<ApiResponse<dynamic>> login(String phoneNumber, String password) async {
+    return await _network.postReq<dynamic>(
+      ApiConstants.login,
+      data: {
+        "phoneNumber": phoneNumber,
+        "password": password,
+        "appType": "Customer",
+      },
+    );
   }
 
-  Future<Response> register({
+  Future<ApiResponse<dynamic>> register({
     required String fullName,
     required String phoneNumber,
     String? email,
     required String password,
   }) async {
-    try {
-      final response = await _apiClient.dio.post(
-        ApiConstants.register,
-        data: {
-          "fullName": fullName,
-          "phoneNumber": phoneNumber,
-          "email": email ?? '',
-          "password": password,
-        },
-      );
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+    return await _network.postReq<dynamic>(
+      ApiConstants.register,
+      data: {
+        "fullName": fullName,
+        "phoneNumber": phoneNumber,
+        "email": email ?? '',
+        "password": password,
+      },
+    );
   }
 
-  Future<Response> checkUser(String email) async {
-    try {
-      final response = await _apiClient.dio.get(
-        ApiConstants.checkUser,
-        queryParameters: {"email": email},
-      );
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+  Future<ApiResponse<dynamic>> checkUser(String email) async {
+    return await _network.getReq<dynamic>(
+      ApiConstants.checkUser,
+      queryParameters: {"email": email},
+    );
   }
 
-  Future<Response> firebaseAuth(String idToken) async {
-    try {
-      final response = await _apiClient.dio.post(
-        ApiConstants.firebaseAuth,
-        data: {
-          "idToken": idToken,
-          "fullName": null,
-          "phoneNumber": null
-        },
-      );
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+  Future<ApiResponse<dynamic>> firebaseAuth(String idToken) async {
+    return await _network.postReq<dynamic>(
+      ApiConstants.firebaseAuth,
+      data: {
+        "idToken": idToken,
+        "appType": "Customer",
+        "fullName": null,
+        "phoneNumber": null
+      },
+    );
   }
 
-  Future<Response> updateProfile({
+  Future<ApiResponse<UserModel>> updateProfile({
     required String fullName,
     String? phoneNumber,
     String? email,
@@ -81,85 +63,90 @@ class AuthProvider {
     String? profilePicturePath,
     String? password,
   }) async {
-    try {
-      String? profilePictureUrl;
-      
-      // Tahap 1: Upload gambar jika ada (dan jika format filepath lokal)
-      if (profilePicturePath != null && profilePicturePath.isNotEmpty && !profilePicturePath.startsWith('http')) {
-        String fileName = profilePicturePath.split('/').last;
-        String lowerName = fileName.toLowerCase();
-        if (!lowerName.endsWith('.jpg') && !lowerName.endsWith('.jpeg') && !lowerName.endsWith('.png')) {
-          fileName = '$fileName.jpg';
-        }
-        
-        final mediaFormData = FormData.fromMap({
-          'file': await MultipartFile.fromFile(
-            profilePicturePath,
-            filename: fileName,
-          ),
-        });
-
-        final mediaResponse = await _apiClient.dio.post(
-          ApiConstants.uploadProfilePicture,
-          data: mediaFormData,
-          options: Options(
-            sendTimeout: const Duration(seconds: 30),
-            receiveTimeout: const Duration(seconds: 30),
-          ),
-        );
-        
-        if (mediaResponse.statusCode == 200 && mediaResponse.data != null) {
-          profilePictureUrl = mediaResponse.data['url'];
-        }
+    String? profilePictureUrl;
+    
+    // Tahap 1: Upload gambar jika ada (dan jika format filepath lokal)
+    if (profilePicturePath != null && profilePicturePath.isNotEmpty && !profilePicturePath.startsWith('http')) {
+      String fileName = profilePicturePath.split('/').last;
+      String lowerName = fileName.toLowerCase();
+      if (!lowerName.endsWith('.jpg') && !lowerName.endsWith('.jpeg') && !lowerName.endsWith('.png')) {
+        fileName = '$fileName.jpg';
       }
+      
+      final mediaFormData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          profilePicturePath,
+          filename: fileName,
+        ),
+      });
 
-      // Tahap 2: Update profil menggunakan JSON
-      final Map<String, dynamic> dataMap = {
-        'fullName': fullName,
-      };
-
-      if (phoneNumber != null && phoneNumber.isNotEmpty) dataMap['phoneNumber'] = phoneNumber;
-      if (email != null && email.isNotEmpty) dataMap['email'] = email;
-      if (defaultAddress != null && defaultAddress.isNotEmpty) dataMap['defaultAddress'] = defaultAddress;
-      if (defaultLatitude != null) dataMap['defaultLatitude'] = defaultLatitude;
-      if (defaultLongitude != null) dataMap['defaultLongitude'] = defaultLongitude;
-      if (password != null && password.isNotEmpty) dataMap['password'] = password;
-      if (profilePictureUrl != null && profilePictureUrl.isNotEmpty) dataMap['profilePictureUrl'] = profilePictureUrl;
-
-      final response = await _apiClient.dio.put(
-        ApiConstants.profile,
-        data: dataMap,
+      final mediaResponse = await _network.postReq<dynamic>(
+        ApiConstants.uploadProfilePicture,
+        data: mediaFormData,
+        isFormData: true,
       );
-      return response;
-    } on DioException catch (e) {
-      rethrow;
+      
+      if (mediaResponse.success && mediaResponse.data != null) {
+        profilePictureUrl = mediaResponse.data['url'];
+      }
     }
+
+    // Tahap 2: Update profil menggunakan JSON
+    final Map<String, dynamic> dataMap = {
+      'fullName': fullName,
+    };
+
+    if (phoneNumber != null && phoneNumber.isNotEmpty) dataMap['phoneNumber'] = phoneNumber;
+    if (email != null && email.isNotEmpty) dataMap['email'] = email;
+    if (defaultAddress != null && defaultAddress.isNotEmpty) dataMap['defaultAddress'] = defaultAddress;
+    if (defaultLatitude != null) dataMap['defaultLatitude'] = defaultLatitude;
+    if (defaultLongitude != null) dataMap['defaultLongitude'] = defaultLongitude;
+    if (password != null && password.isNotEmpty) dataMap['password'] = password;
+    if (profilePictureUrl != null && profilePictureUrl.isNotEmpty) dataMap['profilePictureUrl'] = profilePictureUrl;
+
+    return await _network.putReq<UserModel>(
+      ApiConstants.profile,
+      data: dataMap,
+      fromJson: (data) {
+        if (data is Map<String, dynamic>) {
+          if (data['data'] != null) return UserModel.fromJson(data['data']);
+          return UserModel.fromJson(data);
+        }
+        return UserModel.fromJson({});
+      },
+    );
   }
 
-  Future<Response> getProfile() async {
-    try {
-      final response = await _apiClient.dio.get(ApiConstants.profile);
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+  Future<ApiResponse<UserModel>> getProfile() async {
+    return await _network.getReq<UserModel>(
+      ApiConstants.profile,
+      fromJson: (data) {
+        if (data is Map<String, dynamic>) {
+          if (data['id'] != null) return UserModel.fromJson(data);
+          if (data['data'] != null) return UserModel.fromJson(data['data']);
+        }
+        return UserModel.fromJson({});
+      },
+    );
   }
 
-  Future<Response> updatePassword({
+  Future<ApiResponse<dynamic>> updatePassword({
     required String oldPassword,
     required String newPassword,
   }) async {
-    try {
-      final response = await _apiClient.dio.put(
-        ApiConstants.changePassword,
-        data: {
-          "oldPassword": oldPassword,
-          "newPassword": newPassword,
-        },
-      );
-      return response;
-    } on DioException catch (e) {
-      rethrow;
-    }
+    return await _network.putReq<dynamic>(
+      ApiConstants.changePassword,
+      data: {
+        "oldPassword": oldPassword,
+        "newPassword": newPassword,
+      },
+    );
+  }
+
+  Future<ApiResponse<dynamic>> syncFcmToken(String token) async {
+    return await _network.postReq<dynamic>(
+      ApiConstants.syncFcmToken,
+      data: {"token": token},
+    );
   }
 }

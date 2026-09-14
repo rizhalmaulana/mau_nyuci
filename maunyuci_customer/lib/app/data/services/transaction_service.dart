@@ -1,4 +1,4 @@
-import 'package:maunyuci_core/constants/order_status_enum.dart';
+import 'package:maunyuci_core/maunyuci_core.dart';
 import '../model/transaction/transaction_response_model.dart';
 import '../repositories/transaction_repository.dart';
 

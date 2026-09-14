@@ -2,6 +2,7 @@ class ApiResponse<T> {
   final bool success;
   final T? data;
   final String? message;
+  final int? statusCode;
   final List<String>? errors;
   final Map<String, dynamic>? errorDetails;
 
@@ -9,6 +10,7 @@ class ApiResponse<T> {
     required this.success,
     this.data,
     this.message,
+    this.statusCode,
     this.errors,
     this.errorDetails,
   });
@@ -22,8 +24,9 @@ class ApiResponse<T> {
       data: json['data'] != null && fromJsonT != null
           ? fromJsonT(json['data'])
           : json['data'],
-      message: json['message'],
-      errors: json['errors'] != null
+      message: json['message']?.toString(),
+      statusCode: json['statusCode'] is int ? json['statusCode'] as int : null,
+      errors: json['errors'] != null && json['errors'] is List
           ? List<String>.from(json['errors'])
           : null,
       errorDetails: json['errors'] is Map<String, dynamic>
