@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../../data/model/transaction/transaction_response_model.dart';
 import '../../../data/repositories/transaction_repository.dart';
 import '../../../core/widgets/custom_snackbar.dart';
@@ -9,16 +10,10 @@ class OrderHistoryController extends GetxController {
   final selectedFilter = 'Semua'.obs;
   final filters = ['Semua', '1 Minggu', '3 Bulan', 'Status'];
 
-  final orderStatuses = [
-    'Menunggu',
-    'Pesanan Dibatalkan',
-    'Sedang Dijemput',
-    'Sedang Diantar',
-    'Konfirmasi',
-    'Proses',
-    'Selesai'
-  ];
-  final paymentStatuses = ['Belum Dibayar', 'Selesai'];
+  /// Opsi filter status — label manusiawi dari mapping terpusat.
+  /// Urutan mengikuti alur: Pending -> ... -> Completed, Cancelled terakhir.
+  List<String> get orderStatuses => OrderDisplay.customerFilterLabels;
+  List<String> get paymentStatuses => const ['Belum Bayar', 'Lunas'];
 
   final appliedOrderStatuses = <String>[].obs;
   final appliedPaymentStatus = RxnString();
@@ -119,35 +114,23 @@ class OrderHistoryController extends GetxController {
 
   List<TransactionResponseModel> get filteredOrders => allOrders;
 
-  String _mapIndoToEnum(String idn) {
-    switch (idn) {
-      case 'Menunggu':
-        return 'Pending';
-      case 'Proses':
-        return 'Washing';
-      case 'Sedang Dijemput':
-        return 'PickingUp';
-      case 'Sedang Diantar':
-        return 'Delivering';
-      case 'Konfirmasi':
-        return 'Confirmed';
-      case 'Selesai':
-        return 'Completed';
-      case 'Pesanan Dibatalkan':
-        return 'Cancelled';
-      default:
-        return idn;
-    }
+  /// Label manusiawi -> nilai backend untuk query API.
+  /// Pakai reverse-lookup mapping terpusat agar tidak kedaluwarsa
+  /// saat backend menambah status baru.
+  String _mapIndoToEnum(String label) {
+    return OrderDisplay.valueForCustomerLabel(label) ?? label;
   }
-  
-  String _mapPaymentStatus(String idn) {
-    switch (idn) {
-      case 'Belum Dibayar':
+
+  String _mapPaymentStatus(String label) {
+    switch (label.trim().toLowerCase()) {
+      case 'belum bayar':
+      case 'belum dibayar':
         return 'Unpaid';
-      case 'Selesai':
+      case 'lunas':
+      case 'selesai':
         return 'Paid';
       default:
-        return idn;
+        return label;
     }
   }
 }

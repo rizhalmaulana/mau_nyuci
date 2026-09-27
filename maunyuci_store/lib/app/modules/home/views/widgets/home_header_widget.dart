@@ -65,16 +65,30 @@ class HomeHeaderWidget extends GetView<HomeController> {
                     icon: Icon(Icons.notifications, color: AppColors.white, size: R.sp(24)),
                   ),
                   Obx(() {
-                    if (controller.unreadNotificationCount.value > 0) {
+                    final count = controller.unreadNotificationCount.value;
+                    if (count > 0) {
                       return Positioned(
-                        top: R.h(8),
-                        right: R.w(10),
+                        top: R.h(4),
+                        right: R.w(4),
                         child: Container(
-                          width: R.r(8),
-                          height: R.r(8),
-                          decoration: const BoxDecoration(
+                          constraints: BoxConstraints(
+                            minWidth: R.r(18),
+                            minHeight: R.r(18),
+                          ),
+                          padding: EdgeInsets.symmetric(horizontal: R.w(4)),
+                          decoration: BoxDecoration(
                             color: AppColors.redAccent,
-                            shape: BoxShape.circle,
+                            borderRadius: BorderRadius.circular(R.r(9)),
+                            border: Border.all(color: AppColors.white, width: 1.5),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            count > 99 ? '99+' : '$count',
+                            style: TextStyle(
+                              color: AppColors.white,
+                              fontSize: R.sp(10),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       );

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../constants/app_fonts.dart';
 import '../constants/app_colors.dart';
 import '../utils/responsive_helper.dart';
@@ -35,7 +36,7 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
   Timer? _timer;
 
   static const String _defaultCtaValue =
-      '+6281234567890|Halo CS MauNyuci, saya tertarik untuk berlangganan fitur Premium untuk toko saya.';
+      '+6285218925686|Halo CS MauNyuci, saya tertarik untuk berlangganan fitur Premium untuk toko saya.';
 
   static List<PromoBannerModel> _defaultSlides() => const [
         PromoBannerModel(
@@ -43,6 +44,7 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
           title: 'Laporan Keuangan Otomatis',
           description: 'Masih rekap nota sampai tengah malam? Pantau omzet dan profit bersih real-time dari satu layar.',
           icon: 'pie_chart_outline',
+          imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=800&auto=format&fit=crop',
           ctaValue: _defaultCtaValue,
           sortOrder: 1,
           targetRoles: ['Owner'],
@@ -52,6 +54,7 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
           title: 'Multi-Outlet & Kunci Kas',
           description: 'Punya 2–3 cabang tapi takut kas bocor? Kunci akses staf dan pantau semua transaksi dalam genggaman.',
           icon: 'store_outlined',
+          imageUrl: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=800&auto=format&fit=crop',
           ctaValue: _defaultCtaValue,
           sortOrder: 2,
           targetRoles: ['Owner'],
@@ -61,6 +64,7 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
           title: 'Auto-Reminder & Blast Promo',
           description: 'Baju selesai otomatis ternotifikasi, voucher terkirim ke pelanggan lama. Orderan datang sendiri.',
           icon: 'notifications_active_outlined',
+          imageUrl: 'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?q=80&w=800&auto=format&fit=crop',
           ctaValue: _defaultCtaValue,
           sortOrder: 3,
           targetRoles: ['Owner'],
@@ -70,6 +74,7 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
           title: 'Stok Tak Pernah Kehabisan',
           description: 'Deterjen dan parfum menipis langsung diingatkan. Produksi jalan terus, pelanggan tak kecewa.',
           icon: 'inventory_2_outlined',
+          imageUrl: 'https://images.unsplash.com/photo-1604335399105-a0c585fd81a1?q=80&w=800&auto=format&fit=crop',
           ctaValue: _defaultCtaValue,
           sortOrder: 4,
           targetRoles: ['Owner'],
@@ -79,6 +84,7 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
           title: 'Badge Toko Pilihan',
           description: 'Mau laundry-mu muncul paling atas di aplikasi Customer? Aktifkan prioritas listing sekarang!',
           icon: 'verified_outlined',
+          imageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800&auto=format&fit=crop',
           ctaValue: _defaultCtaValue,
           sortOrder: 5,
           targetRoles: ['Owner'],
@@ -171,15 +177,21 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
       default:
         // Format: "nomor|pesan"
         final parts = slide.ctaValue.split('|');
-        final phone = parts.isNotEmpty && parts[0].isNotEmpty ? parts[0] : '+6281234567890';
+        final phone = parts.isNotEmpty && parts[0].isNotEmpty ? parts[0] : '+6285218925686';
         final message = parts.length > 1 ? parts.sublist(1).join('|') : 'Halo CS MauNyuci!';
-        final uri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
+        final waAppUri = Uri.parse('whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}');
+        final webUri = Uri.parse('https://wa.me/$phone?text=${Uri.encodeComponent(message)}');
+        
+        try {
+          if (await canLaunchUrl(waAppUri)) {
+            await launchUrl(waAppUri, mode: LaunchMode.externalApplication);
+          } else {
+            await launchUrl(webUri, mode: LaunchMode.externalApplication);
+          }
+        } catch (e) {
           Get.snackbar(
-            'Gagal',
-            'Tidak dapat membuka WhatsApp',
+            'Mohon Maaf',
+            'Tidak dapat membuka WhatsApp. Pastikan Browser/Aplikasi WhatsApp terinstal.',
             backgroundColor: AppColors.danger.withValues(alpha: 0.9),
             colorText: AppColors.white,
             snackPosition: SnackPosition.TOP,
@@ -208,10 +220,19 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
               // Background: foto CDN bila ada, gradient ungu bila tidak/gagal load.
               Positioned.fill(
                 child: hasImage
-                    ? Image.network(
-                        bg.imageUrl,
+                    ? CachedNetworkImage(
+                        imageUrl: bg.imageUrl,
                         fit: BoxFit.cover,
-                        errorBuilder: (c, e, s) => Container(
+                        placeholder: (context, url) => Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppColors.primary, AppColors.primary800],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
                           decoration: const BoxDecoration(
                             gradient: LinearGradient(
                               colors: [AppColors.primary, AppColors.primary800],
@@ -273,10 +294,15 @@ class _PremiumPromoSliderState extends State<PremiumPromoSlider> {
                           child: slide.imageUrl.isNotEmpty
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(R.r(14)),
-                                  child: Image.network(
-                                    slide.imageUrl,
+                                  child: CachedNetworkImage(
+                                    imageUrl: slide.imageUrl,
                                     fit: BoxFit.cover,
-                                    errorBuilder: (c, e, s) => Icon(
+                                    placeholder: (context, url) => Icon(
+                                      _iconFromName(slide.icon),
+                                      color: AppColors.white.withValues(alpha: 0.5),
+                                      size: R.r(26),
+                                    ),
+                                    errorWidget: (context, url, error) => Icon(
                                       _iconFromName(slide.icon),
                                       color: AppColors.white,
                                       size: R.r(26),

@@ -63,12 +63,15 @@ class CustomPermissionModal extends StatelessWidget {
 
   static Future<void> _showEnableGpsDialog() async {
     await Get.bottomSheet(
-      Container(
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      SafeArea(
+        top: false,
+        // Tombol "Buka Pengaturan" tidak boleh tertutup tombol navigasi HP.
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,6 +130,7 @@ class CustomPermissionModal extends StatelessWidget {
             )
           ],
         ),
+        ),
       ),
       isScrollControlled: true,
       isDismissible: false,
@@ -140,7 +144,13 @@ class CustomPermissionModal extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 32),
+      padding: EdgeInsets.only(
+        top: 12,
+        left: 24,
+        right: 24,
+        // Tombol bawah tidak boleh tertutup tombol navigasi HP.
+        bottom: 32 + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -21,12 +21,14 @@ class AccountView extends GetView<AccountController> {
         title: Text(
           'Akun & Pengaturan', 
           style: AppFonts.fInterSubheadingSemibold.copyWith(
-            fontSize: R.sp(18), 
-            color: Colors.black87
+            color: Colors.black87,
+            fontSize: R.sp(20)
           ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         centerTitle: true,
       ),
       body: RefreshIndicator(
@@ -35,7 +37,12 @@ class AccountView extends GetView<AccountController> {
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(R.w(16)),
+          padding: EdgeInsets.only(
+            left: R.w(16),
+            right: R.w(16),
+            top: R.w(16),
+            bottom: R.w(16) + MediaQuery.of(context).padding.bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -56,59 +63,44 @@ class AccountView extends GetView<AccountController> {
                         return Container(
                           width: R.r(64),
                           height: R.r(64),
-                          decoration: const BoxDecoration(
-                            color: Colors.grey,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
                             shape: BoxShape.circle,
                           ),
-                          child: const CircularProgressIndicator(color: Colors.white),
+                          child: const CircularProgressIndicator(),
                         );
                       }
                       final rawUrl = controller.profilePictureUrl.value;
                       final imgUrl = getFullImageUrl(rawUrl);
 
                       final hasValidUrl = imgUrl.isNotEmpty && imgUrl.startsWith('http');
-                      if (hasValidUrl) {
-                        return ClipOval(
-                          child: Image.network(
-                            imgUrl,
-                            width: R.r(64),
-                            height: R.r(64),
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return SizedBox(
-                                width: R.r(64),
-                                height: R.r(64),
-                                child: const CircularProgressIndicator(),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              width: R.r(64),
-                              height: R.r(64),
-                              color: AppColors.primary,
-                              child: Center(
+                      return Container(
+                        width: R.r(64),
+                        height: R.r(64),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.primary.withOpacity(0.1),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                        child: hasValidUrl
+                            ? CachedNetworkImage(
+                                imageUrl: imgUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Padding(
+                                  padding: EdgeInsets.all(R.r(16)),
+                                  child: const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+                                ),
+                                errorWidget: (context, url, error) => Icon(Icons.person, size: R.r(32), color: AppColors.primary),
+                              )
+                            : Center(
                                 child: Text(
                                   controller.initials,
                                   style: AppFonts.fInterSubheadingSemibold.copyWith(
-                                    color: AppColors.white,
+                                    color: AppColors.primary,
                                     fontSize: R.sp(20),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        );
-                      }
-                      return CircleAvatar(
-                        radius: R.r(32),
-                        backgroundColor: AppColors.primary,
-                        child: Text(
-                          controller.initials,
-                          style: AppFonts.fInterSubheadingSemibold.copyWith(
-                            color: AppColors.white,
-                            fontSize: R.sp(20),
-                          ),
-                        ),
                       );
                     }),
                     SizedBox(width: R.w(16)),
@@ -132,18 +124,22 @@ class AccountView extends GetView<AccountController> {
                           Obx(() {
                             if (controller.isFetchingProfile.value) return const SizedBox();
                             return Text(
-                              controller.email.value,
+                              controller.phone.value.isNotEmpty ? controller.phone.value : controller.email.value,
                               style: AppFonts.fInterBodySmallRegular.copyWith(color: Colors.grey.shade600),
                             );
                           }),
                           SizedBox(height: R.h(4)),
-                          Obx(() {
-                            if (controller.isFetchingProfile.value) return const SizedBox();
-                            return Text(
-                              controller.phone.value,
-                              style: AppFonts.fInterBodySmallRegular.copyWith(color: Colors.grey.shade600),
-                            );
-                          }),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: R.w(8), vertical: R.h(2)),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(R.r(4)),
+                            ),
+                            child: Text(
+                              'Pelanggan', 
+                              style: AppFonts.fInterStatusSemibold.copyWith(color: AppColors.primary)
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -152,10 +148,7 @@ class AccountView extends GetView<AccountController> {
               ),
 
               SizedBox(height: R.h(24)),
-              Text(
-                'Detail Informasi',
-                style: AppFonts.fInterBodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.grey.shade600),
-              ),
+              Text('Pengaturan Akun', style: AppFonts.fInterBodySmallMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
               SizedBox(height: R.h(8)),
 
               // --- MENUS ---
@@ -167,13 +160,8 @@ class AccountView extends GetView<AccountController> {
                 ),
                 child: Column(
                   children: [
-                    _buildMenuItem(
-                      icon: SvgPicture.asset(
-                        AppAssets.iconUserRounded,
-                        width: R.r(24),
-                        height: R.r(24),
-                        colorFilter: ColorFilter.mode(Colors.grey.shade700, BlendMode.srcIn),
-                      ),
+                    _buildMenuTile(
+                      icon: Icons.person_outline,
                       title: 'Ubah Profil',
                       onTap: () async {
                         await Get.toNamed(Routes.EDIT_PROFILE);
@@ -181,56 +169,57 @@ class AccountView extends GetView<AccountController> {
                       },
                     ),
                     const Divider(height: 1),
-                    _buildMenuItem(
-                      icon: SvgPicture.asset(
-                        AppAssets.iconLockKey,
-                        width: R.r(24),
-                        height: R.r(24),
-                        colorFilter: ColorFilter.mode(Colors.grey.shade700, BlendMode.srcIn),
-                      ),
+                    _buildMenuTile(
+                      icon: Icons.lock_outline,
                       title: 'Ubah Password',
                       onTap: () {
                         Get.toNamed(Routes.CHANGE_PASSWORD);
                       },
-                    ),
-                    const Divider(height: 1),
-                    _buildMenuItem(
-                      icon: SvgPicture.asset(
-                        AppAssets.iconDocumentText,
-                        width: R.r(24),
-                        height: R.r(24),
-                        colorFilter: ColorFilter.mode(Colors.grey.shade700, BlendMode.srcIn),
-                      ),
-                      title: 'Ketentuan Layanan',
-                      onTap: () {},
-                    ),
-                    const Divider(height: 1),
-                    _buildMenuItem(
-                      icon: SvgPicture.asset(
-                        AppAssets.iconShieldStar,
-                        width: R.r(24),
-                        height: R.r(24),
-                        colorFilter: ColorFilter.mode(Colors.grey.shade700, BlendMode.srcIn),
-                      ),
-                      title: 'Kebijakan Privasi',
-                      onTap: () {},
-                    ),
-                    const Divider(height: 1),
-                    _buildMenuItem(
-                      icon: SvgPicture.asset(
-                        AppAssets.iconShieldStar, // Can be changed to info icon later
-                        width: R.r(24),
-                        height: R.r(24),
-                        colorFilter: ColorFilter.mode(Colors.grey.shade700, BlendMode.srcIn),
-                      ),
-                      title: 'Tentang Aplikasi',
-                      onTap: () {},
                     ),
                   ],
                 ),
               ),
 
               SizedBox(height: R.h(24)),
+              Text('Pusat Bantuan & Kebijakan', style: AppFonts.fInterBodySmallMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.grey.shade600)),
+              SizedBox(height: R.h(8)),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(R.r(16)),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  children: [
+                    _buildMenuTile(
+                      icon: Icons.description_outlined,
+                      title: 'Ketentuan Layanan',
+                      onTap: () {
+                        Get.toNamed(Routes.TERMS_OF_SERVICE);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _buildMenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Kebijakan Privasi',
+                      onTap: () {
+                        Get.toNamed(Routes.PRIVACY_POLICY);
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _buildMenuTile(
+                      icon: Icons.info_outline,
+                      title: 'Tentang Aplikasi',
+                      onTap: () {
+                        Get.toNamed(Routes.ABOUT_APP);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: R.h(32)),
               
               // --- LOGOUT BUTTON ---
               Obx(() => ElevatedButton(
@@ -246,7 +235,7 @@ class AccountView extends GetView<AccountController> {
                     ? SizedBox(height: R.h(20), width: R.h(20), child: const CircularProgressIndicator(color: Colors.red, strokeWidth: 2))
                     : Text(
                         'Keluar Akun', 
-                        style: AppFonts.fInterBodyMedium.copyWith(
+                        style: AppFonts.fInterBodySmallMedium.copyWith(
                           fontWeight: FontWeight.bold, 
                           color: Colors.red
                         ),
@@ -261,20 +250,10 @@ class AccountView extends GetView<AccountController> {
     );
   }
 
-  Widget _buildMenuItem({
-    required Widget icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
+  Widget _buildMenuTile({required IconData icon, required String title, required VoidCallback onTap}) {
     return ListTile(
-      leading: icon,
-      title: Text(
-        title, 
-        style: AppFonts.fInterBodyMedium.copyWith(
-          fontWeight: FontWeight.w500,
-          color: AppColors.textPrimary,
-        )
-      ),
+      leading: Icon(icon, color: Colors.grey.shade700, size: R.r(24)),
+      title: Text(title, style: AppFonts.fInterBodySmallMedium.copyWith(fontWeight: FontWeight.w500)),
       trailing: Icon(Icons.chevron_right, color: Colors.grey.shade400, size: R.r(20)),
       onTap: onTap,
     );

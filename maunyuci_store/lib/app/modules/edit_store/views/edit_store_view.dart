@@ -204,6 +204,82 @@ class EditStoreView extends GetView<EditStoreController> {
                             ),
                           ],
                         ),
+                        
+                        SizedBox(height: R.h(24)),
+                        const Divider(),
+                        SizedBox(height: R.h(16)),
+                        
+                        // Status Toko
+                        Text(
+                          'Status Toko',
+                          style: AppFonts.inter(fontSize: R.sp(16), fontWeight: FontWeight.w600, color: AppColors.black87),
+                        ),
+                        SizedBox(height: R.h(8)),
+                        Obx(() => SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'Toko Sedang Buka',
+                            style: AppFonts.inter(fontSize: R.sp(14), fontWeight: FontWeight.w500, color: AppColors.inputText),
+                          ),
+                          subtitle: Text(
+                            'Aktifkan jika toko Anda siap menerima pesanan',
+                            style: AppFonts.inter(fontSize: R.sp(12), color: AppColors.textSecondary),
+                          ),
+                          value: controller.isOpen.value,
+                          onChanged: (val) => controller.isOpen.value = val,
+                          activeColor: AppColors.primary,
+                        )),
+
+                        SizedBox(height: R.h(16)),
+                        const Divider(),
+                        SizedBox(height: R.h(16)),
+                        
+                        // Layanan Antar Jemput
+                        Text(
+                          'Layanan Antar Jemput (Driver)',
+                          style: AppFonts.inter(fontSize: R.sp(16), fontWeight: FontWeight.w600, color: AppColors.black87),
+                        ),
+                        SizedBox(height: R.h(8)),
+                        Obx(() => SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            'Aktifkan Layanan Antar Jemput',
+                            style: AppFonts.inter(fontSize: R.sp(14), fontWeight: FontWeight.w500, color: AppColors.inputText),
+                          ),
+                          subtitle: Text(
+                            'Pelanggan dapat meminta kurir untuk antar jemput cucian',
+                            style: AppFonts.inter(fontSize: R.sp(12), color: AppColors.textSecondary),
+                          ),
+                          value: controller.hasPickupDeliveryService.value,
+                          onChanged: (val) => controller.hasPickupDeliveryService.value = val,
+                          activeColor: AppColors.primary,
+                        )),
+                        
+                        Obx(() {
+                          if (!controller.hasPickupDeliveryService.value) return const SizedBox.shrink();
+                          
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: R.h(16)),
+                              _buildInputLabel('Minimal Order Antar Jemput (Kg)'),
+                              _buildTextField(
+                                controller: controller.minOrderController,
+                                hintText: 'Contoh: 30000',
+                                icon: Icons.scale_outlined,
+                                keyboardType: TextInputType.number,
+                              ),
+                              SizedBox(height: R.h(16)),
+                              _buildInputLabel('Biaya Antar Jemput (Rp)'),
+                              _buildTextField(
+                                controller: controller.pickupFeeController,
+                                hintText: 'Contoh: 10000 (Isi 0 jika gratis)',
+                                icon: Icons.two_wheeler,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
+                          );
+                        }),
                       ],
                     ),
                   ),

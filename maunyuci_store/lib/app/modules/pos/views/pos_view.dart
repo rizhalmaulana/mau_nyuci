@@ -501,7 +501,13 @@ class PosView extends GetView<PosController> {
     final qtyController = TextEditingController();
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.all(R.w(24)),
+        padding: EdgeInsets.only(
+          left: R.w(24),
+          right: R.w(24),
+          top: R.w(24),
+          // Tombol tambah tidak boleh tertutup tombol navigasi HP.
+          bottom: R.w(24) + MediaQuery.of(context).padding.bottom,
+        ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(R.r(24))),

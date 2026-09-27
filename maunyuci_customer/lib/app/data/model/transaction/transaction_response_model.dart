@@ -8,7 +8,8 @@ class TransactionResponseModel {
   final String paymentStatus;
   final DateTime createdAt;
   final DateTime? expectedCompletionDate;
-  final List<OrderItemResponseModel> items; // Tambahkan ini
+  final List<OrderItemResponseModel> items;
+  final double? totalQuantity;
 
   TransactionResponseModel({
     required this.id,
@@ -19,11 +20,15 @@ class TransactionResponseModel {
     required this.totalAmount,
     required this.paymentStatus,
     required this.createdAt,
-    required this.items, // Tambahkan ini
+    required this.items,
     this.expectedCompletionDate,
+    this.totalQuantity,
   });
 
   factory TransactionResponseModel.fromJson(Map<String, dynamic> json) {
+    // API /api/Order/customer mengirim `itemsSummary` (bukan `items`)
+    // dan `totalQuantity`. Dua-duanya didukung agar berat tidak selalu '-'.
+    final rawItems = (json['items'] as List?) ?? (json['itemsSummary'] as List?);
     return TransactionResponseModel(
       id: json['id'],
       storeName: json['storeName'],
@@ -36,9 +41,10 @@ class TransactionResponseModel {
       expectedCompletionDate: json['expectedCompletionDate'] != null
           ? DateTime.parse(json['expectedCompletionDate'])
           : null,
-      items: (json['items'] as List?)
-          ?.map((i) => OrderItemResponseModel.fromJson(i))
+      items: rawItems
+          ?.map((i) => OrderItemResponseModel.fromJson(i as Map<String, dynamic>))
           .toList() ?? [],
+      totalQuantity: (json['totalQuantity'] as num?)?.toDouble(),
     );
   }
 }
@@ -49,6 +55,7 @@ class OrderItemResponseModel {
   final double quantity;
   final String unit;
   final double subTotal;
+  final String? itemImageUrl;
 
   OrderItemResponseModel({
     required this.itemName,
@@ -56,15 +63,20 @@ class OrderItemResponseModel {
     required this.quantity,
     required this.unit,
     required this.subTotal,
+    this.itemImageUrl,
   });
 
   factory OrderItemResponseModel.fromJson(Map<String, dynamic> json) {
+    final quantity = ((json['quantity'] as num?) ?? 0).toDouble();
+    final unitPrice = ((json['unitPrice'] as num?) ?? 0).toDouble();
     return OrderItemResponseModel(
       itemName: json['itemName'] ?? '',
-      unitPrice: (json['unitPrice'] as num).toDouble(),
-      quantity: (json['quantity'] as num).toDouble(),
+      unitPrice: unitPrice,
+      quantity: quantity,
       unit: json['unit'] ?? '',
-      subTotal: (json['subTotal'] as num).toDouble(),
+      // `itemsSummary` tidak mengirim subTotal -> hitung dari qty x harga.
+      subTotal: ((json['subTotal'] as num?) ?? (json['subtotal'] as num?) ?? quantity * unitPrice).toDouble(),
+      itemImageUrl: json['itemImageUrl'] as String?,
     );
   }
 }

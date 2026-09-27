@@ -17,7 +17,6 @@ class AkunController extends GetxController {
 
   final RxBool isLoading = true.obs;
   final RxBool isLoggingOut = false.obs;
-  final RxBool isDeliveryEnabled = false.obs;
 
   final Rxn<UserModel> user = Rxn<UserModel>();
   final Rxn<StoreModel> store = Rxn<StoreModel>();
@@ -25,18 +24,7 @@ class AkunController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadDeliverySetting();
     fetchData();
-  }
-
-  void _loadDeliverySetting() async {
-    final val = await _storageService.read('isDeliveryEnabled');
-    isDeliveryEnabled.value = val == 'true';
-  }
-
-  void toggleDelivery(bool value) {
-    isDeliveryEnabled.value = value;
-    _storageService.write('isDeliveryEnabled', value.toString());
   }
 
   Future<void> fetchData() async {

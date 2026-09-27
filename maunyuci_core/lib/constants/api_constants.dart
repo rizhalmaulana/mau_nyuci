@@ -19,10 +19,12 @@ class ApiConstants {
 
   // --- DRIVER ---
   static const String driverTasks = 'Driver/tasks';
+  static String driverTaskDetail(String orderId) => 'Driver/tasks/$orderId';
   static const String driverLocation = 'Driver/location';
   static const String driverUnsettledCash = 'Driver/unsettled-cash';
 
   // Fungsi helper untuk Path Parameters Driver
+  static String storeDrivers(String storeId) => 'Driver/store/$storeId/drivers';
   static String driverPickup(String orderId) => 'Driver/$orderId/pickup';
   static String driverDeliverCash(String orderId) => 'Driver/$orderId/deliver-cash';
   static String driverDeliverPhoto(String orderId) => 'Driver/$orderId/deliver-photo';
@@ -32,6 +34,7 @@ class ApiConstants {
   static const String uploadProfilePicture = 'Media/upload-profile-picture';
   static const String uploadCatalogImage = 'Media/upload-catalog-image';
   static const String uploadQrisImage = 'Media/upload-qris-image';
+  static const String uploadLaundryImage = 'Media/upload-laundry-image';
 
   // --- ORDER ---
   static const String checkoutOrder = 'Order/checkout';
@@ -41,6 +44,8 @@ class ApiConstants {
   // Fungsi helper untuk Path Parameters Order
   static String confirmWeight(String orderId) => 'Order/$orderId/confirm-weight';
   static String acceptOrder(String orderId) => 'Order/$orderId/accept';
+  static String confirmPickup(String orderId) => 'Order/$orderId/confirm-pickup';
+  static String readyForDelivery(String orderId) => 'Order/$orderId/ready-for-delivery';
   static String cancelOrder(String orderId) => 'Order/$orderId/cancel';
   static String finishWashing(String orderId) => 'Order/$orderId/finish-washing';
   static String completeOrder(String orderId) => 'Order/$orderId/complete';
@@ -55,6 +60,7 @@ class ApiConstants {
   static String getOrderById(String orderId) => 'Order/$orderId';
   static String customerCancelOrder(String orderId) => 'Order/$orderId/customer-cancel';
   static String uploadStoreReceipt(String orderId) => 'Order/store/$orderId/upload-receipt';
+  static String customerUploadReceipt(String orderId) => 'Order/$orderId/upload-receipt';
   static String verifyPayment(String orderId) => 'Order/$orderId/verify-payment';
   static String driverConfirmCash(String orderId) => 'Order/$orderId/driver-confirm-cash';
 
@@ -67,16 +73,19 @@ class ApiConstants {
   static const String getAllStores = 'Store/all';
   static const String getNearbyStores = 'Store/nearby';
   static const String getMyStore = 'Store/my-store';
+  static String getStoreById(String storeId) => 'Store/$storeId';
   static const String updateStore = 'Store/my-store/update';
   static String storeTransactions(String storeId) => 'Store/$storeId/transactions';
 
   // --- STORE BANK ACCOUNT ---
   static const String masterBankMethods = 'StoreBankAccount/master-methods';
   static const String myBankAccounts = 'StoreBankAccount/my-accounts';
+  static String getStoreBankAccountsByStore(String storeId) => 'StoreBankAccount/store/$storeId';
   
   // Premium Store Features
   static const String storeAnalyticsSummary = 'StoreAnalytics/summary';
   static const String storePromo = 'StorePromo';
+  static String getStorePromosByStore(String storeId) => 'StorePromo/store/$storeId';
   static const String storeExpense = 'StoreExpense';
 
   // Bank Account

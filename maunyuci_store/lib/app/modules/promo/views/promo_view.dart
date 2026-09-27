@@ -77,7 +77,13 @@ class PromoView extends GetView<PromoController> {
   void _showPromoFormBottomSheet(BuildContext context) {
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.all(R.w(24)),
+        padding: EdgeInsets.only(
+          left: R.w(24),
+          right: R.w(24),
+          top: R.w(24),
+          // Tombol simpan tidak boleh tertutup tombol navigasi HP.
+          bottom: R.w(24) + MediaQuery.of(context).padding.bottom,
+        ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(R.r(24))),

@@ -92,16 +92,21 @@ class OrderListItemWidget extends StatelessWidget {
                         style: TextStyle(color: AppColors.danger700, fontSize: R.sp(10), fontWeight: FontWeight.bold),
                       ),
                     ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: R.w(8), vertical: R.h(4)),
-                    decoration: BoxDecoration(
-                      color: AppColors.success50,
-                      borderRadius: BorderRadius.circular(R.r(4)),
-                    ),
-                    child: Text(
-                      OrderTranslation.translateOrderStatus(order.status),
-                      style: TextStyle(color: AppColors.success700, fontSize: R.sp(10), fontWeight: FontWeight.bold),
-                    ),
+                  Builder(
+                    builder: (context) {
+                      final statusColor = Color(OrderDisplay.statusColor(order.status));
+                      return Container(
+                        padding: EdgeInsets.symmetric(horizontal: R.w(8), vertical: R.h(4)),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(R.r(4)),
+                        ),
+                        child: Text(
+                          OrderDisplay.storeLabel(order.status),
+                          style: TextStyle(color: statusColor, fontSize: R.sp(10), fontWeight: FontWeight.bold),
+                        ),
+                      );
+                    },
                   ),
                 ],
               )
@@ -213,7 +218,7 @@ class OrderListItemWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Pembayaran: ${OrderTranslation.translatePaymentStatus(order.paymentStatus)}',
+                'Pembayaran: ${OrderDisplay.paymentStatusLabel(order.paymentStatus)}',
                 style: TextStyle(fontSize: R.sp(12), fontWeight: FontWeight.w600),
               ),
               Text(

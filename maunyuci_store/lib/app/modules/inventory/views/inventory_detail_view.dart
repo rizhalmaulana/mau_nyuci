@@ -27,6 +27,13 @@ class InventoryDetailView extends GetView<InventoryDetailController> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.delete_outline, color: AppColors.danger),
+            tooltip: 'Hapus Barang',
+            onPressed: () {
+              _showDeleteConfirmation(context);
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.edit_outlined, color: AppColors.info),
             tooltip: 'Ubah Barang',
             onPressed: () {
@@ -113,7 +120,7 @@ class InventoryDetailView extends GetView<InventoryDetailController> {
                   children: [
                     Text('Sisa Stok Saat Ini:', style: AppFonts.inter(fontSize: R.sp(16), fontWeight: FontWeight.w600)),
                     Text(
-                      '$stock $unit',
+                      '${_formatStock(stock)} $unit',
                       style: AppFonts.inter(fontSize: R.sp(20), fontWeight: FontWeight.bold, color: AppColors.deepPurple),
                     ),
                   ],
@@ -165,10 +172,41 @@ class InventoryDetailView extends GetView<InventoryDetailController> {
     );
   }
 
+  void _showDeleteConfirmation(BuildContext context) {
+    Get.dialog(
+      AlertDialog(
+        title: Text('Hapus Barang?', style: AppFonts.inter(fontWeight: FontWeight.bold)),
+        content: Text('Apakah Anda yakin ingin menghapus barang ini? Seluruh riwayat transaksi stok juga akan ikut terhapus secara permanen.', style: AppFonts.inter(fontSize: R.sp(14))),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(R.r(16))),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('Batal', style: AppFonts.inter(color: AppColors.grey500)),
+          ),
+          Obx(() => TextButton(
+            onPressed: controller.isSubmitting.value ? null : () {
+              Get.back();
+              controller.deleteItem();
+            },
+            child: controller.isSubmitting.value 
+                ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.danger)) 
+                : Text('Hapus', style: AppFonts.inter(color: AppColors.danger, fontWeight: FontWeight.bold)),
+          )),
+        ],
+      ),
+    );
+  }
+
   void _showEditBottomSheet(BuildContext context) {
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.all(R.w(24)),
+        padding: EdgeInsets.only(
+          left: R.w(24),
+          right: R.w(24),
+          top: R.w(24),
+          // Tombol simpan tidak boleh tertutup tombol navigasi HP.
+          bottom: R.w(24) + MediaQuery.of(context).padding.bottom,
+        ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(R.r(24))),
@@ -255,7 +293,13 @@ class InventoryDetailView extends GetView<InventoryDetailController> {
   void _showTransactionBottomSheet(BuildContext context, String unit) {
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.all(R.w(24)),
+        padding: EdgeInsets.only(
+          left: R.w(24),
+          right: R.w(24),
+          top: R.w(24),
+          // Tombol simpan tidak boleh tertutup tombol navigasi HP.
+          bottom: R.w(24) + MediaQuery.of(context).padding.bottom,
+        ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(R.r(24))),

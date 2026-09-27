@@ -19,14 +19,8 @@ class HomeController extends GetxController with WidgetsBindingObserver {
   final TransactionService _transactionService = TransactionService();
   final MenuRepository _menuRepository = MenuRepository();
   
-  var selectedIndex = 0.obs;
   var userName = 'User'.obs;
-  var tabIndex = 0.obs;
   var isLoading = true.obs;
-  
-  var menus = <MenuModel>[].obs;
-  var isMenuLoading = true.obs;
-  var menuErrorMessage = ''.obs;
   
   var userAddress = 'Belum ada alamat'.obs;
   var userLatitude = Rxn<double>();
@@ -47,7 +41,6 @@ class HomeController extends GetxController with WidgetsBindingObserver {
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
-    _fetchMenus();
     _loadUserData();
     _loadTransactionData();
     checkLocationPermissionAndFetch();
@@ -78,25 +71,6 @@ class HomeController extends GetxController with WidgetsBindingObserver {
     });
   }
 
-  Future<void> _fetchMenus() async {
-    try {
-      isMenuLoading.value = true;
-      menuErrorMessage.value = '';
-      
-      final fetchedMenus = await _menuRepository.fetchMenus();
-      fetchedMenus.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-      
-      menus.assignAll(fetchedMenus);
-    } catch (e) {
-      menuErrorMessage.value = e.toString().replaceAll('Exception: ', '');
-    } finally {
-      isMenuLoading.value = false;
-    }
-  }
-
-  void changeTabIndex(int index) {
-    tabIndex.value = index;
-  }
 
   Future<void> _loadUserData() async {
     final name = await SecureStorageHelper.read('full_name');
@@ -181,9 +155,6 @@ class HomeController extends GetxController with WidgetsBindingObserver {
     }
   }
 
-  void changePage(int index) {
-    selectedIndex.value = index;
-  }
 
   Future<void> updateAddress(String address, double? lat, double? lng) async {
     userAddress.value = address;
@@ -200,7 +171,6 @@ class HomeController extends GetxController with WidgetsBindingObserver {
     isLoading.value = true;
     try {
       await Future.wait([
-        _fetchMenus(),
         _fetchProfile(),
         _loadTransactionData(),
         _fetchUnreadCount(),

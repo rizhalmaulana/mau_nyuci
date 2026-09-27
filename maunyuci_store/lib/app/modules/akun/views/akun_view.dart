@@ -349,19 +349,13 @@ class AkunView extends GetView<AkunController> {
                         },
                       ),
                       const Divider(height: 1),
-                      Obx(() => SwitchListTile(
-                            value: controller.isDeliveryEnabled.value,
-                            onChanged: controller.toggleDelivery,
-                            title: Text('Layanan Pengantaran (Driver)',
-                                style: AppFonts.inter(
-                                    fontSize: R.sp(14),
-                                    fontWeight: FontWeight.w500)),
-                            activeColor: AppColors.primary,
-                            secondary: Icon(Icons.delivery_dining_outlined,
-                                color: AppColors.grey700, size: R.r(24)),
-                            contentPadding:
-                                EdgeInsets.symmetric(horizontal: R.w(16)),
-                          )),
+                      _buildMenuTile(
+                        icon: Icons.info_outline,
+                        title: 'Tentang Aplikasi',
+                        onTap: () {
+                          Get.toNamed(Routes.ABOUT_APP);
+                        },
+                      ),
                     ],
                   ),
                 ),

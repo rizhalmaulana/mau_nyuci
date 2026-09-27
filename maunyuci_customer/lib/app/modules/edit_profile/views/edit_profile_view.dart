@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import '../../../core/helpers/api_error_helper.dart';
-import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/utils/responsive_helper.dart';
@@ -15,266 +13,206 @@ class EditProfileView extends GetView<EditProfileController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: Text(
-          'Ubah Profil',
+          'Ubah Profil Akun',
           style: AppFonts.fInterSubheadingSemibold.copyWith(
-            color: AppColors.black,
-            fontSize: R.sp(20),
+            color: Colors.black,
+            fontSize: R.sp(16),
           ),
         ),
         backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        centerTitle: true,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Get.back(),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(R.r(24)),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Foto Profil',
-                  style: AppFonts.fInterSubheadingSemibold.copyWith(fontSize: R.sp(14)),
-                ),
-                SizedBox(height: R.h(16)),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+      body: Form(
+        key: controller.formKey,
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(R.w(16)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Column(
-                      children: [
-                        GestureDetector(
-                          onTap: controller.pickImage,
-                          child: Obx(() {
-                            if (controller.profilePicturePath.value != null) {
-                              return CircleAvatar(
-                                radius: R.r(36),
-                                backgroundImage: FileImage(File(controller.profilePicturePath.value!)),
-                              );
-                            }
-                            final rawUrl = controller.currentProfilePictureUrl;
-                            final imgUrl = getFullImageUrl(rawUrl);
-
-                            final hasValidUrl = imgUrl.isNotEmpty && imgUrl.startsWith('http');
-                            if (hasValidUrl) {
-                              return ClipOval(
-                                child: Image.network(
-                                  imgUrl,
-                                  width: R.r(72),
-                                  height: R.r(72),
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return SizedBox(
-                                      width: R.r(72),
-                                      height: R.r(72),
-                                      child: const CircularProgressIndicator(),
-                                    );
-                                  },
-                                  errorBuilder: (context, error, stackTrace) => Container(
-                                    width: R.r(72),
-                                    height: R.r(72),
-                                    color: AppColors.primary,
-                                    child: Center(
-                                      child: Text(
-                                        controller.initials,
-                                        style: AppFonts.fInterSubheadingSemibold.copyWith(
-                                          color: AppColors.white,
-                                          fontSize: R.sp(24),
-                                        ),
+                    Container(
+                      padding: EdgeInsets.all(R.w(16)),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(R.r(16)),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Lengkapi Profil Anda', style: AppFonts.fInterBodyMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.black87)),
+                          SizedBox(height: R.h(8)),
+                          Text('Ubah foto profil atau nama lengkap Anda di sini.', style: AppFonts.fInterBodySmallRegular.copyWith(color: Colors.grey.shade500)),
+                          SizedBox(height: R.h(32)),
+                          Center(
+                            child: GestureDetector(
+                              onTap: controller.pickImage,
+                              child: Obx(() {
+                                final selectedImage = controller.profilePicturePath.value;
+                                final existingUrl = controller.currentProfilePictureUrl;
+                                final imgUrl = getFullImageUrl(existingUrl);
+                                final hasValidUrl = imgUrl.isNotEmpty && imgUrl.startsWith('http');
+                                
+                                return Stack(
+                                  alignment: Alignment.bottomRight,
+                                  children: [
+                                    Container(
+                                      width: R.r(100),
+                                      height: R.r(100),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey.shade100,
+                                        border: Border.all(color: Colors.grey.shade300, width: 2),
+                                      ),
+                                      child: ClipOval(
+                                        child: selectedImage != null
+                                            ? Image.file(File(selectedImage), fit: BoxFit.cover)
+                                            : (hasValidUrl
+                                                ? Image.network(imgUrl, fit: BoxFit.cover)
+                                                : Icon(Icons.person, size: R.r(40), color: Colors.grey.shade400)),
                                       ),
                                     ),
-                                  ),
-                                ),
-                              );
-                            }
-                            return CircleAvatar(
-                              radius: R.r(36),
-                              backgroundColor: AppColors.primary,
-                              child: Text(
-                                controller.initials,
-                                style: AppFonts.fInterSubheadingSemibold.copyWith(
-                                  color: Colors.white,
-                                  fontSize: R.sp(24),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                        SizedBox(height: R.h(8)),
-                        Text(
-                          'Ganti',
-                          style: AppFonts.fInterBodySmallRegular.copyWith(color: AppColors.black),
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: R.w(16)),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: R.h(24)),
-                        child: Text(
-                          'Pasang foto yang bagus, biar makin keren!',
-                          style: AppFonts.fInterBodyMedium.copyWith(color: Colors.grey.shade600),
-                        ),
+                                    Container(
+                                      padding: EdgeInsets.all(R.w(6)),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 2),
+                                      ),
+                                      child: Icon(Icons.camera_alt, color: Colors.white, size: R.r(16)),
+                                    ),
+                                  ],
+                                );
+                              }),
+                            ),
+                          ),
+                          SizedBox(height: R.h(32)),
+                          _buildInputLabel('Nama Lengkap', isRequired: true),
+                          _buildTextField(
+                            controller: controller.fullNameController,
+                            hintText: 'Contoh: Jhon Taruna',
+                            icon: Icons.person_outline,
+                            validator: (value) => value!.isEmpty ? 'Nama tidak boleh kosong' : null,
+                          ),
+                          SizedBox(height: R.h(16)),
+                          
+                          _buildInputLabel('Alamat Email (Opsional)', isRequired: false),
+                          _buildTextField(
+                            controller: controller.emailController,
+                            hintText: 'Contoh: rizal@example.com',
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                          ),
+                          SizedBox(height: R.h(16)),
+                          
+                          _buildInputLabel('No. Handphone', isRequired: true),
+                          _buildTextField(
+                            controller: controller.phoneController,
+                            hintText: 'Contoh: 08123456789',
+                            icon: Icons.phone_android_outlined,
+                            keyboardType: TextInputType.phone,
+                            readOnly: true, // Phone number cannot be changed directly
+                            validator: (value) => value!.isEmpty ? 'No HP tidak boleh kosong' : null,
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: R.h(32)),
-                _buildLabel('Nama Lengkap', isRequired: true),
-                SizedBox(height: R.h(8)),
-                TextFormField(
-                  controller: controller.fullNameController,
-                  style: AppFonts.fInterBodyMedium.copyWith(fontSize: R.sp(14)),
-                  decoration: _inputDecoration('Contoh: Jhon Taruna'),
-                  validator: (value) => value!.isEmpty ? 'Nama tidak boleh kosong' : null,
-                ),
-                SizedBox(height: R.h(24)),
-                _buildLabel('Email (Opsional)', isRequired: false),
-                SizedBox(height: R.h(8)),
-                TextFormField(
-                  controller: controller.emailController,
-                  style: AppFonts.fInterBodyMedium.copyWith(fontSize: R.sp(14)),
-                  decoration: _inputDecoration('Contoh: rizal@example.com'),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                SizedBox(height: R.h(24)),
-                _buildLabel('No HP', isRequired: true),
-                SizedBox(height: R.h(8)),
-                TextFormField(
-                  controller: controller.phoneController,
-                  style: AppFonts.fInterBodyMedium.copyWith(fontSize: R.sp(14)),
-                  decoration: _inputDecoration('Contoh: 08123456789'),
-                  keyboardType: TextInputType.phone,
-                  validator: (value) => value!.isEmpty ? 'No HP tidak boleh kosong' : null,
-                ),
-                SizedBox(height: R.h(32)),
-                Text(
-                  'Akun terhubung',
-                  style: AppFonts.fInterSubheadingSemibold.copyWith(fontSize: R.sp(14)),
-                ),
-                SizedBox(height: R.h(16)),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(4)),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(R.r(12)),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: Row(
-                    children: [
-                      // Temporary icon container until asset is provided
-                      Container(
-                        width: R.w(24),
-                        height: R.h(24),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white,
-                        ),
-                        child: SvgPicture.asset(
-                          AppAssets.iconGoogle,
-                          width: R.r(20),
-                          height: R.r(20)
-                        ),
-                      ),
-                      SizedBox(width: R.w(12)),
-                      Expanded(
-                        child: Text(
-                          'Google',
-                          style: AppFonts.fInterBodyMedium,
-                        ),
-                      ),
-                      Obx(() => Switch(
-                            value: controller.isGoogleConnected.value,
-                            activeColor: AppColors.primary,
-                            padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(4)),
-                            onChanged: (val) {
-                              // TBD Google Connection Logic
-                            },
-                          )),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            _buildBottomBar(),
+          ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.all(R.r(24)),
+    );
+  }
+
+  Widget _buildInputLabel(String label, {bool isRequired = false}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: R.h(8)),
+      child: RichText(
+        text: TextSpan(
+          text: label,
+          style: AppFonts.fInterBodySmallMedium.copyWith(color: Colors.black87),
+          children: [
+            if (isRequired)
+              TextSpan(
+                text: ' *',
+                style: AppFonts.fInterBodySmallMedium.copyWith(color: Colors.red),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hintText,
+    required IconData icon,
+    TextInputType? keyboardType,
+    bool readOnly = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      readOnly: readOnly,
+      validator: validator,
+      style: AppFonts.fInterBodySmallMedium.copyWith(
+        color: readOnly ? Colors.grey.shade600 : Colors.black87,
+      ),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: AppFonts.fInterBodySmallMedium.copyWith(color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: Colors.grey.shade400, size: R.r(20)),
+        filled: true,
+        fillColor: readOnly ? Colors.grey.shade100 : Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(R.r(12)), borderSide: BorderSide(color: Colors.grey.shade300)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(R.r(12)), borderSide: BorderSide(color: Colors.grey.shade300)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(R.r(12)), borderSide: const BorderSide(color: AppColors.primary)),
+        contentPadding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(16)),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return Container(
+      padding: EdgeInsets.all(R.w(16)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
           child: Obx(() => ElevatedButton(
-                onPressed: controller.isLoading.value ? null : controller.saveProfile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: EdgeInsets.symmetric(vertical: R.h(16)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(R.r(12)),
-                  ),
-                  elevation: 0,
-                ),
-                child: controller.isLoading.value
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        'Simpan',
-                        style: AppFonts.fInterSubheadingSemibold.copyWith(color: Colors.white),
-                      ),
-              )),
+            onPressed: controller.isLoading.value ? null : controller.saveProfile,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              padding: EdgeInsets.symmetric(vertical: R.h(16)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(R.r(12))),
+              elevation: 0,
+            ),
+            child: controller.isLoading.value
+                ? SizedBox(height: R.r(20), width: R.r(20), child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text('Simpan Perubahan', style: AppFonts.fInterBodySmallMedium.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+          )),
         ),
       ),
     );
-  }
-
-  Widget _buildLabel(String text, {bool isRequired = false}) {
-    return RichText(
-      text: TextSpan(
-        text: text,
-        style: AppFonts.fInterBodyMedium.copyWith(color: AppColors.black),
-        children: [
-          if (isRequired)
-            TextSpan(
-              text: ' *',
-              style: AppFonts.fInterBodyMedium.copyWith(color: Colors.red),
-            ),
-        ],
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppFonts.fInterBodyMedium.copyWith(color: Colors.grey.shade400, fontSize: R.sp(14)),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: EdgeInsets.symmetric(horizontal: R.w(14), vertical: R.h(12)),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(R.r(12)),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(R.r(12)),
-        borderSide: BorderSide(color: Colors.grey.shade300),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(R.r(12)),
-        borderSide: const BorderSide(color: AppColors.primary),
-      ),
-    );
-  }
-
-  String _getInitials(String name) {
-    if (name.isEmpty) return 'U';
-    final parts = name.trim().split(' ');
-    if (parts.length > 1) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.substring(0, 1).toUpperCase();
   }
 }

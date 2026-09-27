@@ -76,9 +76,9 @@ class InventoryController extends GetxController {
 
     final data = {
       "itemName": nameController.text.trim(),
-      "currentStock": parseThousand(stockController.text),
+      "stockQuantity": parseThousand(stockController.text),
       "unit": selectedUnit.value,
-      "minStockLevel": parseThousand(minStockController.text),
+      "minimumStockAlert": parseThousand(minStockController.text),
     };
 
     final response = await _inventoryProvider.addInventoryItem(storeId, data);

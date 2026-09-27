@@ -119,12 +119,10 @@ class InventoryDetailController extends GetxController {
       final itemId = item['id']?.toString();
       if (itemId == null || itemId.isEmpty) return;
 
-      final currentStock = (item['currentStock'] ?? item['stockQuantity'] ?? item['stock'] ?? 0).toDouble();
       final data = {
         "itemName": editNameController.text.trim(),
         "unit": editUnit.value,
-        "minStockLevel": parseThousand(editMinStockController.text),
-        "currentStock": currentStock,
+        "minimumStockAlert": parseThousand(editMinStockController.text),
       };
 
       final response = await _inventoryProvider.updateInventoryItem(storeId, itemId, data);
@@ -141,6 +139,32 @@ class InventoryDetailController extends GetxController {
         });
       } else {
         CustomSnackbar.showError('Gagal', response.message ?? 'Gagal memperbarui barang');
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Terjadi Kesalahan', e.toString().replaceAll('Exception: ', ''));
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  Future<void> deleteItem() async {
+    isSubmitting.value = true;
+    try {
+      final storeId = await _storageService.read('storeId');
+      if (storeId == null) return;
+
+      final itemId = item['id']?.toString();
+      if (itemId == null || itemId.isEmpty) return;
+
+      final response = await _inventoryProvider.deleteInventoryItem(storeId, itemId);
+
+      if (response.success) {
+        Get.back(); // kembali ke halaman list
+        Future.delayed(const Duration(milliseconds: 300), () {
+          CustomSnackbar.showSuccess('Berhasil', 'Barang berhasil dihapus');
+        });
+      } else {
+        CustomSnackbar.showError('Gagal', response.message ?? 'Gagal menghapus barang');
       }
     } catch (e) {
       CustomSnackbar.showError('Terjadi Kesalahan', e.toString().replaceAll('Exception: ', ''));

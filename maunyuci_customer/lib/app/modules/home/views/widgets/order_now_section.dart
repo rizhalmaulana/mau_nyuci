@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -12,8 +13,12 @@ class OrderNowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: R.w(24)),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(12)),
+      child: GestureDetector(
+        onTap: () {
+          Get.toNamed('/create-order');
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: R.w(16), vertical: R.h(12)),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
@@ -58,6 +63,7 @@ class OrderNowCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

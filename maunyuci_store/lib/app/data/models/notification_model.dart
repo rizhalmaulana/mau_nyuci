@@ -25,7 +25,9 @@ class NotificationModel {
       isRead: json['isRead'] ?? false,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : DateTime.now(),
       type: json['type'],
-      referenceId: json['referenceId'],
+      // SOP Notifikasi: kolom dataPayload orderId bisa bernama
+      // referenceId / relatedId / orderId tergantung endpoint.
+      referenceId: json['referenceId'] ?? json['relatedId'] ?? json['orderId'],
     );
   }
 }

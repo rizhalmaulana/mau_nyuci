@@ -34,4 +34,25 @@ class TransactionProvider {
       },
     );
   }
+
+  Future<ApiResponse<OrderModel>> getOrderById(String orderId) async {
+    return await _network.getReq<OrderModel>(
+      ApiConstants.getOrderById(orderId),
+      fromJson: (data) => OrderModel.fromJson(data),
+    );
+  }
+
+  Future<ApiResponse<void>> cancelOrder(String orderId, String reason) async {
+    return await _network.putReq<void>(
+      ApiConstants.customerCancelOrder(orderId), // make sure this maps to 'Order/$orderId/customer-cancel' in ApiConstants
+      data: {'reason': reason},
+    );
+  }
+
+  Future<ApiResponse<void>> uploadReceipt(String orderId, String imageUrl) async {
+    return await _network.putReq<void>(
+      ApiConstants.customerUploadReceipt(orderId),
+      data: {'paymentReceiptUrl': imageUrl},
+    );
+  }
 }

@@ -17,7 +17,7 @@ class PremiumPaywallWidget extends StatelessWidget {
   });
 
   Future<void> _openWhatsAppSupport() async {
-    const phoneNumber = '+6281234567890'; // TODO: Ganti dengan nomor asli
+    const phoneNumber = '+6285218925686';
     const message = 'Halo CS MauNyuci, saya tertarik untuk berlangganan fitur Premium untuk toko saya.';
     final Uri url = Uri.parse('https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}');
     
@@ -25,8 +25,8 @@ class PremiumPaywallWidget extends StatelessWidget {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
       Get.snackbar(
-        'Gagal',
-        'Tidak dapat membuka WhatsApp',
+        'Mohon Maaf',
+        'Terjadi kesalahan, sehingga tidak dapat membuka WhatsApp',
         backgroundColor: AppColors.danger.withValues(alpha: 0.9),
         colorText: AppColors.white,
         snackPosition: SnackPosition.TOP,

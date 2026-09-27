@@ -113,7 +113,14 @@ class AllOrdersView extends GetView<AllOrdersController> {
             child: Obx(() {
               if (controller.isLoading.value) {
                 return ListView.builder(
-                  padding: EdgeInsets.all(R.w(16)),
+                  padding: EdgeInsets.only(
+                    left: R.w(16),
+                    right: R.w(16),
+                    top: R.w(16),
+                    // Inset sistem agar item terbawah tidak tertutup
+                    // tombol navigasi HP (mode 3 tombol).
+                    bottom: R.w(16) + MediaQuery.of(context).padding.bottom,
+                  ),
                   itemCount: 5,
                   itemBuilder: (context, index) => Padding(
                     padding: EdgeInsets.only(bottom: R.h(12)),
@@ -148,7 +155,14 @@ class AllOrdersView extends GetView<AllOrdersController> {
                 onRefresh: controller.refreshOrders,
                 color: AppColors.primary,
                 child: ListView.builder(
-                  padding: EdgeInsets.all(R.w(16)),
+                  padding: EdgeInsets.only(
+                    left: R.w(16),
+                    right: R.w(16),
+                    top: R.w(16),
+                    // Inset sistem agar item terbawah tidak tertutup
+                    // tombol navigasi HP (mode 3 tombol).
+                    bottom: R.w(16) + MediaQuery.of(context).padding.bottom,
+                  ),
                   physics: const AlwaysScrollableScrollPhysics(),
                   itemCount: filteredOrders.length,
                   itemBuilder: (context, index) {

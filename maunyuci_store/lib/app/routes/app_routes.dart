@@ -15,7 +15,9 @@ abstract class Routes {
   static const EDIT_STORE = '/edit-store';
   static const CHANGE_PASSWORD = '/change-password';
   static const PRIVACY_POLICY = '/privacy-policy';
+  static const ABOUT_APP = '/about-app';
   static const STAFF = '/staff';
   static const INVENTORY = '/inventory';
   static const INVENTORY_DETAIL = '/inventory-detail';
+  static const WEIGH_LAUNDRY = '/weigh-laundry';
 }

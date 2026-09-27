@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/services.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../account/controllers/account_controller.dart';
 import '../../../core/widgets/custom_snackbar.dart';
@@ -70,16 +71,26 @@ class EditProfileController extends GetxController {
   }
 
   Future<void> pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 85, // built-in compression dari image_picker
-    );
-    if (image != null) {
-      final sanitizedPath = await sanitizeAndCompressImage(image.path);
-      profilePicturePath.value = sanitizedPath;
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85, // built-in compression dari image_picker
+      );
+      if (image != null) {
+        final sanitizedPath = await sanitizeAndCompressImage(image.path);
+        profilePicturePath.value = sanitizedPath;
+      }
+    } on PlatformException catch (e) {
+      if (e.code == 'camera_access_denied') {
+        CustomSnackbar.showInfo('Izin Ditolak', 'Silakan izinkan akses galeri/kamera di Pengaturan HP Anda.');
+      } else {
+        CustomSnackbar.showError('Error', 'Gagal memilih gambar: ${e.message}');
+      }
+    } catch (e) {
+      CustomSnackbar.showError('Error', 'Terjadi kesalahan: $e');
     }
   }
 

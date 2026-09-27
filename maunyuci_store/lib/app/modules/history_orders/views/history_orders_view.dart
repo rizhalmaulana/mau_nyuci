@@ -139,7 +139,14 @@ class HistoryOrdersView extends GetView<HistoryOrdersController> {
             child: Obx(() {
               if (controller.historyOrders.isEmpty && controller.isHistoryLoading.value) {
                 return ListView.builder(
-                  padding: EdgeInsets.all(R.w(16)),
+                  padding: EdgeInsets.only(
+                    left: R.w(16),
+                    right: R.w(16),
+                    top: R.w(16),
+                    // Inset sistem agar item terbawah tidak tertutup
+                    // tombol navigasi HP (mode 3 tombol).
+                    bottom: R.w(16) + MediaQuery.of(context).padding.bottom,
+                  ),
                   itemCount: 5,
                   itemBuilder: (context, index) => Padding(
                     padding: EdgeInsets.only(bottom: R.h(12)),
@@ -175,7 +182,14 @@ class HistoryOrdersView extends GetView<HistoryOrdersController> {
                 color: AppColors.primary,
                 child: ListView.builder(
                   controller: controller.scrollController,
-                  padding: EdgeInsets.all(R.w(16)),
+                  padding: EdgeInsets.only(
+                    left: R.w(16),
+                    right: R.w(16),
+                    top: R.w(16),
+                    // Inset sistem agar item terbawah tidak tertutup
+                    // tombol navigasi HP (mode 3 tombol).
+                    bottom: R.w(16) + MediaQuery.of(context).padding.bottom,
+                  ),
                   physics: const AlwaysScrollableScrollPhysics(),
                   itemCount: controller.historyOrders.length + (controller.hasMoreHistory.value ? 1 : 0),
                   itemBuilder: (context, index) {

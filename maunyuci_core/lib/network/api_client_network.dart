@@ -2,13 +2,6 @@ import 'package:dio/dio.dart';
 import 'api_client.dart';
 import 'api_response.dart';
 
-/// Wrapper resmi untuk semua HTTP call.
-/// Provider/Controller wajib lewat sini, jangan pakai `ApiClient().dio`
-/// langsung agar envelope backend, Bearer Token, dan error handling konsisten.
-///
-/// Bentuk envelope backend yang didukung:
-/// `{ success: bool, data: <inner>, message: String }`
-/// `fromJson` selalu menerima <inner> (sudah di-unwrap), bukan full body.
 class ApiClientNetwork {
   final ApiClient _apiClient = ApiClient();
 
@@ -91,8 +84,6 @@ class ApiClientNetwork {
   }
 
   ApiResponse<T> _handleError<T>(DioException e) {
-    // Log mentah untuk debugging (pesan asli BE bisa ter-masking oleh handleErrorMessage).
-    // ignore: avoid_print
     print('[API ERROR] ${e.requestOptions.method} ${e.requestOptions.path} '
         '-> HTTP ${e.response?.statusCode} | RAW: ${e.response?.data}');
     String message = ApiClient.handleErrorMessage(e.response?.data);

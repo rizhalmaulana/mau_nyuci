@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../../data/models/store_model.dart';
 import '../../../data/providers/store_provider.dart';
 import '../../../core/widgets/custom_snackbar.dart';
@@ -26,6 +25,7 @@ class EditStoreController extends GetxController {
   final RxString closeTime = ''.obs;
 
   final RxBool hasPickupDeliveryService = false.obs;
+  final RxBool isOpen = false.obs;
   final Rxn<File> selectedImage = Rxn<File>();
   final RxString existingImageUrl = ''.obs;
 
@@ -41,10 +41,15 @@ class EditStoreController extends GetxController {
       nameController.text = _store.name;
       phoneController.text = _store.phoneNumber ?? '';
       selectedAddress.value = _store.address;
-      selectedLat.value = _store.latitude ?? 0.0;
-      selectedLng.value = _store.longitude ?? 0.0;
+      selectedLat.value = _store.latitude;
+      selectedLng.value = _store.longitude;
       existingImageUrl.value = _store.storeImageUrl;
+      hasPickupDeliveryService.value = _store.hasPickupDeliveryService;
+      isOpen.value = _store.isOpen;
       
+      minOrderController.text = _store.minOrderForPickup > 0 ? _store.minOrderForPickup.toStringAsFixed(0) : '';
+      pickupFeeController.text = _store.pickupDeliveryFee > 0 ? _store.pickupDeliveryFee.toStringAsFixed(0) : '';
+
       final times = _store.operatingHoursFormatted.split('-');
       if (times.length == 2) {
         openTime.value = times[0].trim();
@@ -129,7 +134,7 @@ class EditStoreController extends GetxController {
 
     isLoading.value = true;
     try {
-      final formData = dio.FormData.fromMap({
+      final payloadData = {
         'Name': nameController.text.trim(),
         'Address': selectedAddress.value,
         'Latitude': selectedLat.value,
@@ -137,9 +142,19 @@ class EditStoreController extends GetxController {
         'PhoneNumber': phoneController.text.trim(),
         'OpenTime': '${openTime.value}:00',
         'CloseTime': '${closeTime.value}:00',
-      });
+        'HasPickupDeliveryService': hasPickupDeliveryService.value,
+        'IsOpen': isOpen.value,
+        'MinOrderForPickup': minOrderController.text.isNotEmpty ? minOrderController.text.trim() : '0',
+        'PickupDeliveryFee': pickupFeeController.text.isNotEmpty ? pickupFeeController.text.trim() : '0',
+      };
+      
+      debugPrint('=== PAYLOAD UPDATE STORE ===');
+      debugPrint(payloadData.toString());
+
+      final formData = dio.FormData.fromMap(payloadData);
 
       if (selectedImage.value != null) {
+        debugPrint('ImageFile attached: ${selectedImage.value!.path}');
         formData.files.add(MapEntry(
           'ImageFile',
           await dio.MultipartFile.fromFile(
@@ -148,6 +163,7 @@ class EditStoreController extends GetxController {
           ),
         ));
       }
+      debugPrint('============================');
 
       final response = await _storeProvider.updateStore(formData);
       if (response.success) {

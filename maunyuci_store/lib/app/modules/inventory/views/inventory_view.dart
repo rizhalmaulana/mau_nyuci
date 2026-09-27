@@ -69,7 +69,13 @@ class InventoryView extends GetView<InventoryController> {
   void _showAddItemBottomSheet(BuildContext context) {
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.all(R.w(24)),
+        padding: EdgeInsets.only(
+          left: R.w(24),
+          right: R.w(24),
+          top: R.w(24),
+          // Tombol simpan tidak boleh tertutup tombol navigasi HP.
+          bottom: R.w(24) + MediaQuery.of(context).padding.bottom,
+        ),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(R.r(24))),
@@ -208,7 +214,7 @@ class InventoryView extends GetView<InventoryController> {
                   ),
                   SizedBox(height: R.h(4)),
                   Text(
-                    'Stok: $stock $unit',
+                    'Stok: ${stock % 1 == 0 ? stock.toInt() : stock} $unit',
                     style: AppFonts.inter(fontSize: R.sp(14), color: isLowStock ? AppColors.danger : AppColors.deepPurple, fontWeight: FontWeight.w600),
                   ),
                   if (isLowStock) ...[

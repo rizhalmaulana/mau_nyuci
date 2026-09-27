@@ -5,12 +5,14 @@ import '../../../data/models/layanan_model.dart';
 import '../../../data/providers/layanan_provider.dart';
 import '../../../data/models/store_bank_account_model.dart';
 import '../../../data/providers/store_bank_account_provider.dart';
+import '../../../data/providers/store_provider.dart';
 import '../../../data/providers/order_provider.dart';
 import '../../../core/widgets/custom_snackbar.dart';
-import '../../../core/widgets/custom_snackbar.dart';
+import '../../../data/models/store_model.dart';
 import 'package:maunyuci_core/maunyuci_core.dart';
 import '../../home/controllers/home_controller.dart';
 import '../../all_orders/controllers/all_orders_controller.dart';
+
 class PosCartItem {
   final String id;
   final String name;
@@ -32,8 +34,10 @@ class PosCartItem {
 class PosController extends GetxController {
   final StorageService _storageService = Get.find();
   final LayananProvider _layananProvider = LayananProvider();
-  final StoreBankAccountProvider _bankAccountProvider = StoreBankAccountProvider();
+  final StoreBankAccountProvider _bankAccountProvider =
+      StoreBankAccountProvider();
   final OrderProvider _orderProvider = OrderProvider();
+  final StoreProvider _storeProvider = StoreProvider();
 
   var isSubmitting = false.obs;
 
@@ -43,10 +47,10 @@ class PosController extends GetxController {
 
   // State
   var cartItems = <PosCartItem>[].obs;
-  var paymentMethodId = ''.obs; 
+  var paymentMethodId = ''.obs;
   var paymentStatus = 'Lunas'.obs; // Lunas, Belum Lunas
   var isDeliverySelected = false.obs;
-  
+
   // Settings
   var isDeliveryFeatureEnabled = false.obs;
 
@@ -61,28 +65,53 @@ class PosController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _loadDeliverySettings();
-    _fetchCatalogs();
-    fetchBankAccounts();
+    _initializeData();
   }
 
-  void _loadDeliverySettings() async {
-    final val = await _storageService.read('isDeliveryEnabled');
-    isDeliveryFeatureEnabled.value = val == 'true';
-    if (!isDeliveryFeatureEnabled.value) {
-      isDeliverySelected.value = false;
-    }
-  }
-
-  Future<void> _fetchCatalogs() async {
+  Future<void> _initializeData() async {
     isLoadingCatalog.value = true;
-    final response = await _layananProvider.getMyCatalog();
+    isLoadingBankAccounts.value = true;
+
+    final responses = await Future.wait([
+      _storeProvider.getStoreProfile(),
+      _layananProvider.getMyCatalog(),
+      _bankAccountProvider.getMyAccounts(),
+    ]);
+
+    // Handle Store Profile
+    final storeRes = responses[0] as ApiResponse<StoreModel>;
+    if (storeRes.success && storeRes.data != null) {
+      isDeliveryFeatureEnabled.value = storeRes.data!.hasPickupDeliveryService;
+      if (!isDeliveryFeatureEnabled.value) {
+        isDeliverySelected.value = false;
+      }
+    }
+
+    // Handle Catalogs
+    final catalogRes = responses[1] as ApiResponse<List<LayananModel>>;
     isLoadingCatalog.value = false;
-    
-    if (response.success && response.data != null) {
-      catalogs.assignAll(response.data!);
+    if (catalogRes.success && catalogRes.data != null) {
+      catalogs.assignAll(catalogRes.data!);
     } else {
-      final msg = (response.message == null || response.message!.isEmpty) ? 'Gagal mengambil katalog' : response.message!;
+      final msg = (catalogRes.message == null || catalogRes.message!.isEmpty)
+          ? 'Gagal mengambil katalog'
+          : catalogRes.message!;
+      CustomSnackbar.showWarning('Error', msg);
+    }
+
+    // Handle Bank Accounts
+    final bankRes = responses[2] as ApiResponse<List<StoreBankAccountModel>>;
+    isLoadingBankAccounts.value = false;
+    if (bankRes.success && bankRes.data != null) {
+      bankAccounts.assignAll(bankRes.data!);
+      if (bankAccounts.isNotEmpty &&
+          !bankAccounts.any((b) => b.id == paymentMethodId.value)) {
+        paymentMethodId.value = '';
+      }
+    } else {
+      final msg = (bankRes.message == null || bankRes.message!.isEmpty)
+          ? 'Gagal mengambil metode pembayaran'
+          : bankRes.message!;
       CustomSnackbar.showWarning('Error', msg);
     }
   }
@@ -91,20 +120,25 @@ class PosController extends GetxController {
     isLoadingBankAccounts.value = true;
     final response = await _bankAccountProvider.getMyAccounts();
     isLoadingBankAccounts.value = false;
-    
+
     if (response.success && response.data != null) {
       bankAccounts.assignAll(response.data!);
-      if (bankAccounts.isNotEmpty && !bankAccounts.any((b) => b.id == paymentMethodId.value)) {
-        // Do not default to first account, let user select
+      if (bankAccounts.isNotEmpty &&
+          !bankAccounts.any((b) => b.id == paymentMethodId.value)) {
         paymentMethodId.value = '';
       }
     } else {
-      final msg = (response.message == null || response.message!.isEmpty) ? 'Gagal mengambil metode pembayaran' : response.message!;
+      final msg = (response.message == null || response.message!.isEmpty)
+          ? 'Gagal mengambil metode pembayaran'
+          : response.message!;
       CustomSnackbar.showWarning('Error', msg);
     }
   }
 
-  double get grandTotal => cartItems.fold(0, (sum, item) => sum + item.subtotal);
+
+
+  double get grandTotal =>
+      cartItems.fold(0, (sum, item) => sum + item.subtotal);
 
   void addToCart(LayananModel catalog, double qty) {
     if (qty <= 0) return;
@@ -134,30 +168,38 @@ class PosController extends GetxController {
 
   Future<void> submitOrder() async {
     if (cartItems.isEmpty) {
-      CustomSnackbar.showWarning('Keranjang Kosong', 'Silakan pilih layanan terlebih dahulu.');
+      CustomSnackbar.showWarning(
+          'Keranjang Kosong', 'Silakan pilih layanan terlebih dahulu.');
       return;
     }
     if (customerNameController.text.isEmpty) {
-      CustomSnackbar.showWarning('Input tidak valid', 'Nama pelanggan wajib diisi.');
+      CustomSnackbar.showWarning(
+          'Input tidak valid', 'Nama pelanggan wajib diisi.');
       return;
     }
     if (paymentStatus.value == 'Lunas' && paymentMethodId.value.isEmpty) {
-      CustomSnackbar.showWarning('Metode Pembayaran', 'Silakan pilih metode pembayaran.');
+      CustomSnackbar.showWarning(
+          'Metode Pembayaran', 'Silakan pilih metode pembayaran.');
       return;
     }
 
     isSubmitting.value = true;
-    
+
     final payload = PosCheckoutPayload(
       guestCustomerName: customerNameController.text,
-      guestCustomerPhone: customerWaController.text.isNotEmpty ? customerWaController.text : null,
+      guestCustomerPhone: customerWaController.text.isNotEmpty
+          ? customerWaController.text
+          : null,
       deliveryType: isDeliverySelected.value ? 1 : 0,
       paymentMethod: paymentStatus.value == 'Lunas' ? 0 : 1,
-      selectedStoreBankAccountId: paymentMethodId.value.isNotEmpty ? paymentMethodId.value : null,
-      items: cartItems.map((item) => CheckoutItemPayload(
-        catalogItemId: item.id,
-        quantity: item.quantity,
-      )).toList(),
+      selectedStoreBankAccountId:
+          paymentMethodId.value.isNotEmpty ? paymentMethodId.value : null,
+      items: cartItems
+          .map((item) => CheckoutItemPayload(
+                catalogItemId: item.id,
+                quantity: item.quantity,
+              ))
+          .toList(),
     );
 
     final response = await _orderProvider.posCheckoutOrder(payload);
@@ -174,7 +216,8 @@ class PosController extends GetxController {
         Get.find<AllOrdersController>().refreshOrders();
       }
     } else {
-      CustomSnackbar.showError('Gagal', response.message ?? 'Terjadi kesalahan saat memproses pesanan.');
+      CustomSnackbar.showError('Gagal',
+          response.message ?? 'Terjadi kesalahan saat memproses pesanan.');
     }
   }
 

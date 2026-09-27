@@ -1,9 +1,14 @@
+/// Backend enum: Models/Order.cs -> OrderStatus.
+/// Nilai [value] harus sama persis dengan string dari API.
 enum OrderStatus {
   pending('Pending'),
-  pickingUp('PickingUp'),
-  washing('Washing'),
-  delivering('Delivering'),
   confirmed('Confirmed'),
+  waitingForDropOff('WaitingForDropOff'),
+  onPickup('OnPickup'),
+  awaitingPayment('AwaitingPayment'),
+  washing('Washing'),
+  readyForPickup('ReadyForPickup'),
+  onDelivery('OnDelivery'),
   completed('Completed'),
   cancelled('Cancelled');
 
@@ -18,4 +23,10 @@ enum OrderStatus {
     }
     return null;
   }
+
+  /// Status yang masih dianggap "berjalan" (belum final).
+  bool get isActive => this != completed && this != cancelled;
+
+  /// Status final: tidak ada aksi lanjutan.
+  bool get isFinal => this == completed || this == cancelled;
 }

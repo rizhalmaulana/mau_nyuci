@@ -12,6 +12,7 @@ import 'app/core/constants/app_fonts.dart';
 import 'app/core/constants/app_colors.dart';
 
 import 'app/data/services/storage_service.dart';
+import 'app/data/providers/auth_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -19,6 +20,26 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await NotificationService().init();
+
+  // SOP Notifikasi: ketuk pop-up yang membawa orderId langsung
+  // redirect ke halaman Detail Pesanan.
+  NotificationService.onNotificationTap = (data) async {
+    final orderId = NotificationService.extractOrderId(data);
+    if (orderId == null) return;
+    final token = await SecureStorageHelper.getToken();
+    if (token == null || token.isEmpty) {
+      Get.offAllNamed(Routes.LOGIN);
+      return;
+    }
+    Get.toNamed(Routes.ORDER_DETAIL, arguments: orderId);
+  };
+
+  // Token FCM bisa basi (rotate) — sync ulang agar push tetap sampai.
+  NotificationService.onFcmTokenRefresh = (newToken) async {
+    final session = await SecureStorageHelper.getToken();
+    if (session == null || session.isEmpty) return; // belum login
+    await AuthProvider().syncFcmToken(newToken);
+  };
   
   // Inisialisasi StorageService
   await Get.putAsync(() => StorageService().init());
@@ -123,7 +144,14 @@ class MyApp extends StatelessWidget {
       getPages: AppPages.routes,
       builder: (context, child) {
         R.init(context);
-        return child!;
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(0.9),
+            // Jika Anda menggunakan Flutter versi < 3.16, hapus baris di atas dan gunakan:
+            // textScaleFactor: 0.9,
+          ),
+          child: child!,
+        );
       },
     );
   }

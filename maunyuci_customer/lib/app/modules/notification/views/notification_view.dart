@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/notification_controller.dart';
+import '../../../routes/app_pages.dart';
 import 'package:intl/intl.dart';
 
 class NotificationView extends GetView<NotificationController> {
@@ -27,6 +28,9 @@ class NotificationView extends GetView<NotificationController> {
         return RefreshIndicator(
           onRefresh: controller.fetchNotifications,
           child: ListView.separated(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom + 16,
+            ),
             controller: controller.scrollController,
             itemCount: controller.notifications.length + (controller.hasMoreData.value ? 1 : 0),
             separatorBuilder: (context, index) => const Divider(height: 1),
@@ -69,7 +73,12 @@ class NotificationView extends GetView<NotificationController> {
                 ),
                 onTap: () {
                   controller.markAsRead(notification);
-                  // Handle navigation based on type or referenceId if needed
+                  // SOP Notifikasi: item yang membawa orderId (referenceId)
+                  // langsung redirect ke halaman Detail Pesanan.
+                  final orderId = notification.referenceId;
+                  if (orderId != null && orderId.isNotEmpty) {
+                    Get.toNamed(Routes.ORDER_DETAIL, arguments: orderId);
+                  }
                 },
               );
             },
