@@ -61,6 +61,16 @@ class OrderProvider {
     );
   }
 
+  /// PUT Order/{orderId}/confirm-pickup — Terima + Assign Driver Jemput sekaligus.
+  /// [driverId] WAJIB DriverProfiles.Id (bukan userId).
+  Future<ApiResponse<String>> confirmPickup(String orderId, String driverId) async {
+    return await _network.putReq<String>(
+      ApiConstants.confirmPickup(orderId),
+      data: {'driverId': driverId},
+      fromJson: (inner) => inner?.toString() ?? '',
+    );
+  }
+
   Future<ApiResponse<String>> completeOrderWithPayment(String orderId, String finalPaymentProvider) async {
     return await _network.putReq<String>(
       ApiConstants.completeOrder(orderId),
@@ -86,6 +96,21 @@ class OrderProvider {
       ApiConstants.uploadStoreReceipt(orderId),
       data: formData,
       isFormData: true,
+      fromJson: (inner) => inner?.toString() ?? '',
+    );
+  }
+  Future<ApiResponse<String>> readyForDelivery(String orderId, String driverId) async {
+    return await _network.putReq<String>(
+      ApiConstants.readyForDelivery(orderId),
+      data: {'driverId': driverId},
+      fromJson: (inner) => inner?.toString() ?? '',
+    );
+  }
+
+  Future<ApiResponse<String>> confirmWeight(String orderId, List<Map<String, dynamic>> items) async {
+    return await _network.putReq<String>(
+      ApiConstants.confirmWeight(orderId),
+      data: {'items': items},
       fromJson: (inner) => inner?.toString() ?? '',
     );
   }

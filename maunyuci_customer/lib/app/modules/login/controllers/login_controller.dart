@@ -129,7 +129,7 @@ class LoginController extends GetxController {
             }
           }
 
-          Get.offAllNamed(Routes.HOME);
+          Get.offAllNamed(Routes.MAIN);
         }
       } else {
         CustomSnackbar.showError(
@@ -218,7 +218,7 @@ class LoginController extends GetxController {
           if (isProfileComplete == false) {
             Get.offAllNamed(Routes.COMPLETE_PROFILE);
           } else {
-            Get.offAllNamed(Routes.HOME);
+            Get.offAllNamed(Routes.MAIN);
           }
         }
       } else {

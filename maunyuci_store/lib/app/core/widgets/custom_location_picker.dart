@@ -332,7 +332,12 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
           if (_searchResults.isNotEmpty)
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  // Tile terbawah tidak boleh tertutup tombol navigasi HP.
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
                   final item = _searchResults[index];

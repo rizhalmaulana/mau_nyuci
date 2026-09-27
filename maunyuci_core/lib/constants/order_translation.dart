@@ -1,70 +1,31 @@
+import 'order_display.dart';
+
+/// Wrapper kompatibilitas. Kode baru disarankan memakai [OrderDisplay]
+/// langsung agar bisa memilih sudut pandang customer vs store.
+///
+/// Catatan: [translateOrderStatus] mengembalikan label customer
+/// (human-friendly). Untuk operasional toko pakai
+/// `OrderDisplay.storeLabel(status)`.
 class OrderTranslation {
-  static String translatePaymentStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'unpaid':
-        return 'Belum Lunas';
-      case 'paid':
-        return 'Lunas';
-      case 'verifying':
-        return 'Menunggu Verifikasi';
-      case 'failed':
-        return 'Ditolak / Gagal';
-      default:
-        return status;
-    }
-  }
+  static String translatePaymentStatus(String status) =>
+      OrderDisplay.paymentStatusLabel(status);
 
-  static String translatePaymentMethod(String method) {
-    switch (method.toLowerCase()) {
-      case 'paylater':
-        return 'Bayar Nanti';
-      case 'paynow':
-        return 'Bayar Sekarang';
-      default:
-        return method;
-    }
-  }
+  static String translatePaymentMethod(String method) =>
+      OrderDisplay.paymentMethodLabel(method);
 
-  static String translateOrderStatus(String status) {
-    switch (status.toLowerCase()) {
-      case 'awaitingpayment':
-        return 'Menunggu Pembayaran';
-      case 'pending':
-        return 'Menunggu';
-      case 'confirmed':
-        return 'Terkonfirmasi';
-      case 'waitingfordropoff':
-        return 'Menunggu Drop-off';
-      case 'onpickup':
-        return 'Sedang Dijemput';
-      case 'washing':
-        return 'Dicuci';
-      case 'ready':
-      case 'readyforpickup':
-        return 'Siap Ambil';
-      case 'completed':
-      case 'complete':
-        return 'Selesai';
-      case 'ondelivery':
-        return 'Sedang Diantar';
-      case 'delivered':
-        return 'Terkirim';
-      case 'cancelled':
-      case 'cancel':
-        return 'Batal';
-      default:
-        return status;
-    }
-  }
+  static String translateOrderStatus(String status) =>
+      OrderDisplay.customerLabel(status);
 
-  static String translateDeliveryType(String type) {
-    switch (type.toLowerCase()) {
-      case 'selfservice':
-        return 'Antar Sendiri';
-      case 'courier':
-        return 'Layanan Kurir';
-      default:
-        return type;
-    }
-  }
+  static String translateDeliveryType(String type) =>
+      OrderDisplay.deliveryLabel(type);
+
+  /// Tambahan yang sebelumnya belum ada.
+  static String describeOrderStatusForCustomer(String status) =>
+      OrderDisplay.customerDescription(status);
+
+  static String describeOrderStatusForStore(String status) =>
+      OrderDisplay.storeDescription(status);
+
+  static String displayPaymentProvider(String paymentMethod, String? bankName) =>
+      OrderDisplay.displayPaymentProvider(paymentMethod, bankName);
 }

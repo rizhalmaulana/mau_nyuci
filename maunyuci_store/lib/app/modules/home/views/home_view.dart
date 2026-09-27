@@ -160,7 +160,11 @@ class HomeView extends GetView<HomeController> {
                                 );
                           }),
 
-                          SizedBox(height: R.h(24)),
+                          // Inset sistem agar konten terbawah tidak tertutup
+                          // tombol navigasi HP (mode 3 tombol).
+                          SizedBox(
+                            height: R.h(24) + MediaQuery.of(context).padding.bottom,
+                          ),
                         ],
                       ),
                     ),

@@ -11,6 +11,10 @@ class StoreModel {
   final int totalReviews;
   final String storeImageUrl;
   final String? phoneNumber;
+  final bool hasPickupDeliveryService;
+  final double minOrderForPickup;
+  final double pickupDeliveryFee;
+  final bool isOpen;
 
   StoreModel({
     required this.id,
@@ -25,6 +29,10 @@ class StoreModel {
     required this.totalReviews,
     required this.storeImageUrl,
     this.phoneNumber,
+    this.hasPickupDeliveryService = false,
+    this.minOrderForPickup = 0.0,
+    this.pickupDeliveryFee = 0.0,
+    this.isOpen = false,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +49,10 @@ class StoreModel {
       totalReviews: json['totalReviews'] ?? 0,
       storeImageUrl: json['storeImageUrl'] ?? '',
       phoneNumber: json['phoneNumber'] ?? json['storePhoneNumber'],
+      hasPickupDeliveryService: json['hasPickupDeliveryService'] ?? false,
+      minOrderForPickup: (json['minOrderForPickup'] as num?)?.toDouble() ?? 0.0,
+      pickupDeliveryFee: (json['pickupDeliveryFee'] as num?)?.toDouble() ?? 0.0,
+      isOpen: json['isOpen'] ?? json['isCurrentlyOpen'] ?? false,
     );
   }
 
@@ -58,6 +70,10 @@ class StoreModel {
       'totalReviews': totalReviews,
       'storeImageUrl': storeImageUrl,
       'phoneNumber': phoneNumber,
+      'hasPickupDeliveryService': hasPickupDeliveryService,
+      'minOrderForPickup': minOrderForPickup,
+      'pickupDeliveryFee': pickupDeliveryFee,
+      'isOpen': isOpen,
     };
   }
 }

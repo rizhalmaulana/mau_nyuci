@@ -7,12 +7,14 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 class CompleteProfileView extends GetView<CompleteProfileController> {
   const CompleteProfileView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    R.init(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -24,7 +26,7 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+        padding: EdgeInsets.symmetric(horizontal: R.w(24), vertical: R.h(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -34,14 +36,14 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: R.h(8)),
             Text(
               'Mohon lengkapi data di bawah untuk\nmemproses akunmu.',
               style: AppFonts.fInterBodySmallRegular.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: R.h(32)),
 
             Obx(() => CustomTextField(
               label: 'No HP',
@@ -51,7 +53,7 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
               keyboardType: TextInputType.phone,
               errorText: controller.phoneError.value.isEmpty ? null : controller.phoneError.value,
             )),
-            const SizedBox(height: 16),
+            SizedBox(height: R.h(16)),
 
             Obx(() => CustomTextField(
               label: 'Kata Sandi',
@@ -65,19 +67,19 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
                 icon: controller.isPasswordHidden.value
                     ? SvgPicture.asset(
                         AppAssets.iconEyeClosed,
-                        width: 20,
-                        height: 20,
+                        width: R.r(20),
+                        height: R.r(20),
                         colorFilter: const ColorFilter.mode(AppColors.border, BlendMode.srcIn),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.visibility_outlined,
                         color: AppColors.border,
-                        size: 20,
+                        size: R.r(20),
                       ),
                 onPressed: controller.togglePasswordVisibility,
               ),
             )),
-            const SizedBox(height: 16),
+            SizedBox(height: R.h(16)),
 
             Obx(() => CustomTextField(
               label: 'Konfirmasi Kata Sandi',
@@ -90,19 +92,19 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
                 icon: controller.isConfirmPasswordHidden.value
                     ? SvgPicture.asset(
                         AppAssets.iconEyeClosed,
-                        width: 20,
-                        height: 20,
+                        width: R.r(20),
+                        height: R.r(20),
                         colorFilter: const ColorFilter.mode(AppColors.border, BlendMode.srcIn),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.visibility_outlined,
                         color: AppColors.border,
-                        size: 20,
+                        size: R.r(20),
                       ),
                 onPressed: controller.toggleConfirmPasswordVisibility,
               ),
             )),
-            const SizedBox(height: 40),
+            SizedBox(height: R.h(40)),
 
             SizedBox(
               width: double.infinity,
@@ -110,18 +112,18 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
                 onPressed: controller.isLoading.value ? null : controller.saveProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: R.h(16)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(R.r(8)),
                   ),
                   elevation: 0,
                   disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.7),
                 ),
                 child: controller.isLoading.value
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        height: R.r(20),
+                        width: R.r(20),
+                        child: const CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 2,
                         ),
@@ -132,7 +134,7 @@ class CompleteProfileView extends GetView<CompleteProfileController> {
                       ),
               )),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: R.h(24)),
           ],
         ),
       ),

@@ -8,6 +8,8 @@ class OrderModel {
   final String paymentMethod;
   final double totalAmount;
   final double deliveryFee;
+  final double discountAmount;
+  final String? appliedPromoCode;
   final String paymentStatus;
   final String? paymentProvider;
   final String? paymentReceiptUrl;
@@ -22,6 +24,14 @@ class OrderModel {
   final DateTime? expectedCompletionDate;
   final bool isLate;
   
+  final String? deliveryAddress;
+  final double? deliveryLatitude;
+  final double? deliveryLongitude;
+  final String? logisticsNote;
+  final String? pickupTimeSlot;
+  final String? deliveryTimeSlot;
+  final String? customerLaundryImageUrl;
+
   // Fitur manual POS Order
   final bool isManualOrder;
   final String? guestCustomerName;
@@ -42,6 +52,8 @@ class OrderModel {
     required this.paymentMethod,
     required this.totalAmount,
     required this.deliveryFee,
+    this.discountAmount = 0.0,
+    this.appliedPromoCode,
     required this.paymentStatus,
     this.paymentProvider,
     this.paymentReceiptUrl,
@@ -53,6 +65,13 @@ class OrderModel {
     required this.createdAt,
     this.expectedCompletionDate,
     required this.isLate,
+    this.deliveryAddress,
+    this.deliveryLatitude,
+    this.deliveryLongitude,
+    this.logisticsNote,
+    this.pickupTimeSlot,
+    this.deliveryTimeSlot,
+    this.customerLaundryImageUrl,
     required this.isManualOrder,
     this.guestCustomerName,
     this.guestCustomerPhone,
@@ -72,6 +91,8 @@ class OrderModel {
       paymentMethod: json['paymentMethod'] ?? 'PayLater',
       totalAmount: (json['totalAmount'] ?? 0).toDouble(),
       deliveryFee: (json['deliveryFee'] ?? 0).toDouble(),
+      discountAmount: (json['discountAmount'] ?? 0).toDouble(),
+      appliedPromoCode: json['appliedPromoCode'],
       paymentStatus: json['paymentStatus'] ?? 'Unpaid',
       paymentProvider: json['paymentProvider'],
       paymentReceiptUrl: json['paymentReceiptUrl'],
@@ -83,6 +104,13 @@ class OrderModel {
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']).toLocal() : DateTime.now(),
       expectedCompletionDate: json['expectedCompletionDate'] != null ? DateTime.parse(json['expectedCompletionDate']).toLocal() : null,
       isLate: json['isLate'] ?? false,
+      deliveryAddress: json['deliveryAddress'],
+      deliveryLatitude: json['deliveryLatitude'] != null ? (json['deliveryLatitude'] as num).toDouble() : null,
+      deliveryLongitude: json['deliveryLongitude'] != null ? (json['deliveryLongitude'] as num).toDouble() : null,
+      logisticsNote: json['logisticsNote'],
+      pickupTimeSlot: json['pickupTimeSlot'],
+      deliveryTimeSlot: json['deliveryTimeSlot'],
+      customerLaundryImageUrl: json['customerLaundryImageUrl'],
       isManualOrder: json['isManualOrder'] ?? false,
       guestCustomerName: json['guestCustomerName'],
       guestCustomerPhone: json['guestCustomerPhone'],
@@ -124,6 +152,7 @@ class OrderItemSummaryModel {
 }
 
 class OrderItemModel {
+  final String id;
   final String itemName;
   final double unitPrice;
   final double quantity;
@@ -132,6 +161,7 @@ class OrderItemModel {
   final String? itemImageUrl;
 
   OrderItemModel({
+    required this.id,
     required this.itemName,
     required this.unitPrice,
     required this.quantity,
@@ -141,7 +171,10 @@ class OrderItemModel {
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
+    // GET Order/{id} mengirim kunci "orderItemId" (bukan "id").
+    final parsedId = (json['id'] ?? json['orderItemId'])?.toString() ?? '';
     return OrderItemModel(
+      id: parsedId,
       itemName: json['itemName'] ?? '',
       unitPrice: (json['unitPrice'] ?? 0).toDouble(),
       quantity: (json['quantity'] ?? 0).toDouble(),

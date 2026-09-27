@@ -1,9 +1,9 @@
 import 'package:get/get.dart';
 import '../controllers/main_controller.dart';
 import '../../home/controllers/home_controller.dart';
-// import '../../orders/controllers/orders_controller.dart'; // TODO: Uncomment later
-// import '../../services/controllers/services_controller.dart'; // TODO: Uncomment later
-// import '../../profile/controllers/profile_controller.dart'; // TODO: Uncomment later
+import '../../all_orders/controllers/all_orders_controller.dart';
+import '../../layanan/controllers/layanan_controller.dart';
+import '../../akun/controllers/akun_controller.dart';
 
 class MainBinding extends Bindings {
   @override
@@ -11,9 +11,17 @@ class MainBinding extends Bindings {
     Get.lazyPut<MainController>(
       () => MainController(),
     );
-    // Inisialisasi controller lain yang ada di tab pertama (Home)
     Get.lazyPut<HomeController>(
       () => HomeController(),
+    );
+    Get.lazyPut<AllOrdersController>(
+      () => AllOrdersController(),
+    );
+    Get.lazyPut<LayananController>(
+      () => LayananController(),
+    );
+    Get.lazyPut<AkunController>(
+      () => AkunController(),
     );
   }
 }

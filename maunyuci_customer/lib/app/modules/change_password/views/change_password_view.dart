@@ -6,12 +6,14 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 class ChangePasswordView extends GetView<ChangePasswordController> {
   const ChangePasswordView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    R.init(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -30,26 +32,26 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
         titleSpacing: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        padding: EdgeInsets.symmetric(horizontal: R.w(24), vertical: R.h(16)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Banner Info
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.all(R.r(12)),
               decoration: BoxDecoration(
                 color: const Color(0xFFE6F0FF), // Light blue banner background
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(R.r(8)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.info,
-                    color: Color(0xFF1C64F2), // Info icon color
-                    size: 20,
+                    color: const Color(0xFF1C64F2), // Info icon color
+                    size: R.r(20),
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: R.w(8)),
                   Expanded(
                     child: Text(
                       'Pastikan password baru kamu sulit dan kamu ingat. Jangan sampe lupa ya!',
@@ -61,7 +63,7 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: R.h(32)),
 
             // Form Fields
             Obx(() => CustomTextField(
@@ -76,19 +78,19 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
                 icon: controller.isOldPasswordHidden.value
                     ? SvgPicture.asset(
                         AppAssets.iconEyeClosed,
-                        width: 20,
-                        height: 20,
+                        width: R.r(20),
+                        height: R.r(20),
                         colorFilter: const ColorFilter.mode(AppColors.border, BlendMode.srcIn),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.visibility_outlined,
                         color: AppColors.border,
-                        size: 20,
+                        size: R.r(20),
                       ),
                 onPressed: controller.toggleOldPasswordVisibility,
               ),
             )),
-            const SizedBox(height: 24),
+            SizedBox(height: R.h(24)),
 
             Obx(() => CustomTextField(
               key: const ValueKey('new_password_field'),
@@ -103,19 +105,19 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
                 icon: controller.isNewPasswordHidden.value
                     ? SvgPicture.asset(
                         AppAssets.iconEyeClosed,
-                        width: 20,
-                        height: 20,
+                        width: R.r(20),
+                        height: R.r(20),
                         colorFilter: const ColorFilter.mode(AppColors.border, BlendMode.srcIn),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.visibility_outlined,
                         color: AppColors.border,
-                        size: 20,
+                        size: R.r(20),
                       ),
                 onPressed: controller.toggleNewPasswordVisibility,
               ),
             )),
-            const SizedBox(height: 24),
+            SizedBox(height: R.h(24)),
 
             Obx(() => CustomTextField(
               key: const ValueKey('confirm_password_field'),
@@ -130,19 +132,19 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
                 icon: controller.isConfirmPasswordHidden.value
                     ? SvgPicture.asset(
                         AppAssets.iconEyeClosed,
-                        width: 20,
-                        height: 20,
+                        width: R.r(20),
+                        height: R.r(20),
                         colorFilter: const ColorFilter.mode(AppColors.border, BlendMode.srcIn),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.visibility_outlined,
                         color: AppColors.border,
-                        size: 20,
+                        size: R.r(20),
                       ),
                 onPressed: controller.toggleConfirmPasswordVisibility,
               ),
             )),
-            const SizedBox(height: 48),
+            SizedBox(height: R.h(48)),
 
             // Tombol Simpan
             SizedBox(
@@ -151,18 +153,18 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
                 onPressed: controller.isLoading.value ? null : controller.savePassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: R.h(16)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(R.r(12)),
                   ),
                   elevation: 0,
                   disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.7),
                 ),
                 child: controller.isLoading.value
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        height: R.r(20),
+                        width: R.r(20),
+                        child: const CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 2,
                         ),
@@ -171,13 +173,13 @@ class ChangePasswordView extends GetView<ChangePasswordController> {
                         'Simpan',
                         style: AppFonts.fInterBodySmallMedium.copyWith(
                           color: AppColors.white,
-                          fontSize: 16,
+                          fontSize: R.sp(16),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
               )),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: R.h(24)),
           ],
         ),
       ),

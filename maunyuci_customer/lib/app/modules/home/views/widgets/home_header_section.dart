@@ -70,16 +70,30 @@ class HomeHeader extends GetView<HomeController> {
                       ),
                     ),
                     Obx(() {
-                      if (controller.unreadNotificationCount.value > 0) {
+                      final count = controller.unreadNotificationCount.value;
+                      if (count > 0) {
                         return Positioned(
-                          top: R.h(8),
-                          right: R.w(10),
+                          top: 0,
+                          right: 0,
                           child: Container(
-                            width: R.r(8),
-                            height: R.r(8),
-                            decoration: const BoxDecoration(
+                            constraints: BoxConstraints(
+                              minWidth: R.r(18),
+                              minHeight: R.r(18),
+                            ),
+                            padding: EdgeInsets.symmetric(horizontal: R.w(4)),
+                            decoration: BoxDecoration(
                               color: Colors.redAccent,
-                              shape: BoxShape.circle,
+                              borderRadius: BorderRadius.circular(R.r(9)),
+                              border: Border.all(color: AppColors.white, width: 1.5),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              count > 99 ? '99+' : '$count',
+                              style: AppFonts.fInterCaptionMedium.copyWith(
+                                color: AppColors.white,
+                                fontSize: R.sp(10),
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         );

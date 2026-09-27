@@ -27,4 +27,22 @@ class AppFonts {
   static TextStyle get fInterCaptionLight => TextStyle(fontFamily: _fontFamily, fontSize: R.sp(12), fontWeight: FontWeight.w300);
   static TextStyle get fInterCaptionRegular => TextStyle(fontFamily: _fontFamily, fontSize: R.sp(12), fontWeight: FontWeight.w400);
   static TextStyle get fInterCaptionMedium => TextStyle(fontFamily: _fontFamily, fontSize: R.sp(12), fontWeight: FontWeight.w500);
+
+  // Helper from store app for easy migration
+  static TextStyle inter({
+    double? fontSize,
+    FontWeight? fontWeight,
+    Color? color,
+    FontStyle? fontStyle,
+    TextDecoration? decoration,
+  }) {
+    return TextStyle(
+      fontFamily: _fontFamily,
+      fontSize: fontSize ?? R.sp(14),
+      fontWeight: fontWeight ?? FontWeight.w400,
+      color: color,
+      fontStyle: fontStyle,
+      decoration: decoration,
+    );
+  }
 }

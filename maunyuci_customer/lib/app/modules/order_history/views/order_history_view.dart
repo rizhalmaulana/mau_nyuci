@@ -54,7 +54,12 @@ class OrderHistoryView extends GetView<OrderHistoryController> {
                 onRefresh: () => controller.fetchOrders(isRefresh: true),
                 child: ListView.builder(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.all(R.r(16)),
+                  padding: EdgeInsets.only(
+                    left: R.r(16),
+                    right: R.r(16),
+                    top: R.r(16),
+                    bottom: R.r(16) + MediaQuery.of(context).padding.bottom,
+                  ),
                   itemCount: controller.filteredOrders.length,
                   itemBuilder: (context, index) {
                     return Padding(

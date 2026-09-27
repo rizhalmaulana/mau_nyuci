@@ -45,6 +45,12 @@ class InventoryProvider {
     );
   }
 
+  Future<ApiResponse<dynamic>> deleteInventoryItem(String storeId, String itemId) async {
+    return await _network.deleteReq<dynamic>(
+      ApiConstants.inventoryItem(storeId, itemId),
+    );
+  }
+
   Future<ApiResponse<dynamic>> addInventoryTransaction(String storeId, String itemId, Map<String, dynamic> data) async {
     return await _network.postReq<dynamic>(
       ApiConstants.inventoryTransactions(storeId, itemId),

@@ -331,7 +331,11 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
           if (_searchResults.isNotEmpty)
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                ),
                 itemCount: _searchResults.length,
                 itemBuilder: (context, index) {
                   final item = _searchResults[index];
@@ -360,7 +364,11 @@ class _CustomLocationPickerState extends State<CustomLocationPicker> {
                   const SizedBox(height: 8),
                   Expanded(
                     child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        bottom: MediaQuery.of(context).padding.bottom + 16,
+                      ),
                       itemCount: _recentAddresses.length,
                       itemBuilder: (context, index) {
                         final item = _recentAddresses[index];

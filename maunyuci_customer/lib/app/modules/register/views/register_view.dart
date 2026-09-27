@@ -6,12 +6,14 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_fonts.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/widgets/custom_text_field.dart';
+import '../../../core/utils/responsive_helper.dart';
 
 class RegisterView extends GetView<RegisterController> {
   const RegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    R.init(context);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -23,7 +25,7 @@ class RegisterView extends GetView<RegisterController> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+        padding: EdgeInsets.symmetric(horizontal: R.w(24), vertical: R.h(8)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,25 +35,25 @@ class RegisterView extends GetView<RegisterController> {
                 color: AppColors.textPrimary
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: R.h(8)),
             Text(
               'Isi dengan baik ya oke, jangan sampe lupa !',
               style: AppFonts.fInterBodySmallRegular.copyWith(
                 color: AppColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: R.h(32)),
 
             // Form Fields
             Obx(() => CustomTextField(
               key: const ValueKey('name_field'),
               label: 'Nama Lengkap',
               isRequired: true,
-              hintText: 'cth : Jhon Taruna',
+              hintText: 'contoh : Jhon Taruna',
               controller: controller.nameController,
               errorText: controller.nameError.value.isEmpty ? null : controller.nameError.value,
             )),
-            const SizedBox(height: 16),
+            SizedBox(height: R.h(16)),
 
             CustomTextField(
               key: const ValueKey('email_field'),
@@ -60,7 +62,7 @@ class RegisterView extends GetView<RegisterController> {
               controller: controller.emailController,
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: R.h(16)),
 
             Obx(() => CustomTextField(
               key: const ValueKey('phone_field'),
@@ -71,7 +73,7 @@ class RegisterView extends GetView<RegisterController> {
               keyboardType: TextInputType.phone,
               errorText: controller.phoneError.value.isEmpty ? null : controller.phoneError.value,
             )),
-            const SizedBox(height: 16),
+            SizedBox(height: R.h(16)),
 
             Obx(() => CustomTextField(
               key: const ValueKey('password_field'),
@@ -86,19 +88,19 @@ class RegisterView extends GetView<RegisterController> {
                 icon: controller.isPasswordHidden.value
                     ? SvgPicture.asset(
                         AppAssets.iconEyeClosed,
-                        width: 20,
-                        height: 20,
+                        width: R.r(20),
+                        height: R.r(20),
                         colorFilter: const ColorFilter.mode(AppColors.border, BlendMode.srcIn),
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.visibility_outlined,
                         color: AppColors.border,
-                        size: 20,
+                        size: R.r(20),
                       ),
                 onPressed: controller.togglePasswordVisibility,
               ),
             )),
-            const SizedBox(height: 40),
+            SizedBox(height: R.h(40)),
 
             // Tombol Daftar
             SizedBox(
@@ -107,18 +109,18 @@ class RegisterView extends GetView<RegisterController> {
                 onPressed: controller.isLoading.value ? null : controller.register,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: R.h(16)),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(R.r(8)),
                   ),
                   elevation: 0,
                   disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.7),
                 ),
                 child: controller.isLoading.value
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
+                    ? SizedBox(
+                        height: R.r(20),
+                        width: R.r(20),
+                        child: const CircularProgressIndicator(
                           color: Colors.white,
                           strokeWidth: 2,
                         ),
@@ -129,7 +131,7 @@ class RegisterView extends GetView<RegisterController> {
                       ),
               )),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: R.h(24)),
           ],
         ),
       ),

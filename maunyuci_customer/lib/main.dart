@@ -7,6 +7,7 @@ import 'package:maunyuci_core/maunyuci_core.dart';
 import 'app/routes/app_pages.dart';
 import 'app/core/utils/responsive_helper.dart';
 import 'app/core/widgets/custom_snackbar.dart';
+import 'app/data/providers/auth_provider.dart';
 import 'app/data/repositories/database_binding.dart';
 
 class MyHttpOverrides extends HttpOverrides {
@@ -22,6 +23,26 @@ void main() async {
   HttpOverrides.global = MyHttpOverrides();
   await Firebase.initializeApp();
   await NotificationService().init();
+
+  // SOP Notifikasi: ketuk pop-up / item notifikasi yang membawa orderId
+  // langsung redirect ke halaman Detail Pesanan.
+  NotificationService.onNotificationTap = (data) async {
+    final orderId = NotificationService.extractOrderId(data);
+    if (orderId == null) return;
+    final token = await SecureStorageHelper.getToken();
+    if (token == null || token.isEmpty) {
+      Get.offAllNamed(Routes.LOGIN);
+      return;
+    }
+    Get.toNamed(Routes.ORDER_DETAIL, arguments: orderId);
+  };
+
+  // Token FCM bisa basi (rotate) — sync ulang agar push tetap sampai.
+  NotificationService.onFcmTokenRefresh = (newToken) async {
+    final session = await SecureStorageHelper.getToken();
+    if (session == null || session.isEmpty) return; // belum login
+    await AuthProvider().syncFcmToken(newToken);
+  };
 
   // Setup global 401 unauthorized redirect to login
   bool isRedirecting = false;
@@ -65,7 +86,14 @@ void main() async {
       defaultTransition: Transition.cupertino,
       builder: (context, child) {
         R.init(context);
-        return child!;
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: const TextScaler.linear(0.9),
+            // Jika Anda menggunakan Flutter versi < 3.16, hapus baris di atas dan gunakan:
+            // textScaleFactor: 0.9,
+          ),
+          child: child!,
+        );
       },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),

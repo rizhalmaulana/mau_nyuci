@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -52,7 +52,7 @@ class _MapPickerViewState extends State<MapPickerView> {
         setState(() {
           _centerPosition = LatLng(position.latitude, position.longitude);
         });
-        _mapController.move(_centerPosition, 15.0);
+        _mapController.move(_centerPosition, 17.5);
         _fetchAddress(_centerPosition);
       } catch (e) {
         // Fallback to default and fetch address
@@ -165,15 +165,36 @@ class _MapPickerViewState extends State<MapPickerView> {
             mapController: _mapController,
             options: MapOptions(
               initialCenter: _centerPosition,
-              initialZoom: 15.0,
+              initialZoom: 17.5,
               onPositionChanged: _onPositionChanged,
             ),
             children: [
               TileLayer(
+                // OpenStreetMap Default: Sangat lengkap (nama gedung, POI, jalan),
+                // 100% GRATIS dan TIDAK PERLU API KEY. Wajib atribusi.
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.maunyuci_customer',
               ),
             ],
+          ),
+          // Atribusi lisensi peta (wajib OSM + CARTO).
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.85),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '© Esri • © OpenStreetMap contributors',
+                style: AppFonts.fInterCaptionRegular.copyWith(
+                  fontSize: 10,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
           ),
           
           // Center Marker (Fixed in center)
@@ -193,7 +214,14 @@ class _MapPickerViewState extends State<MapPickerView> {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              margin: const EdgeInsets.all(16),
+              // + inset sistem agar tombol di kartu tidak tertutup
+              // tombol navigasi HP (mode 3 tombol).
+              margin: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 16,
+                bottom: 16 + MediaQuery.of(context).padding.bottom,
+              ),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.white,
@@ -280,7 +308,8 @@ class _MapPickerViewState extends State<MapPickerView> {
           // Locate me button
           Positioned(
             right: 16,
-            bottom: 180, // Above the info card
+            // Ikut naik mengikuti kartu info + inset sistem.
+            bottom: 180 + MediaQuery.of(context).padding.bottom, // Above the info card
             child: FloatingActionButton(
               backgroundColor: AppColors.white,
               onPressed: () async {
@@ -290,7 +319,7 @@ class _MapPickerViewState extends State<MapPickerView> {
                   );
                   _mapController.move(
                     LatLng(position.latitude, position.longitude), 
-                    15.0
+                    17.5
                   );
                 } catch (e) {
                   CustomSnackbar.showError('Mohon Maaf', 'Gagal mendapatkan lokasi saat ini');

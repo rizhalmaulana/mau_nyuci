@@ -34,6 +34,9 @@ import '../modules/printer_settings/views/printer_settings_view.dart';
 import '../modules/change_password/bindings/change_password_binding.dart';
 import '../modules/change_password/views/change_password_view.dart';
 import '../modules/privacy_policy/views/privacy_policy_view.dart';
+import '../modules/about_app/views/about_app_view.dart';
+import '../modules/weigh_laundry/bindings/weigh_laundry_binding.dart';
+import '../modules/weigh_laundry/views/weigh_laundry_view.dart';
 
 class AppPages {
   static const INITIAL = Routes.SPLASH;
@@ -112,6 +115,12 @@ class AppPages {
       name: Routes.PRINTER_SETTINGS,
       page: () => const PrinterSettingsView(),
       binding: PrinterSettingsBinding(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: Routes.ABOUT_APP,
+      page: () => const AboutAppView(),
+      transition: Transition.rightToLeft,
     ),
     GetPage(
       name: Routes.STAFF,
@@ -124,6 +133,11 @@ class AppPages {
     GetPage(
       name: Routes.INVENTORY_DETAIL,
       page: () => const maunyuci_inventory_detail_view.InventoryDetailView(),
+    ),
+    GetPage(
+      name: Routes.WEIGH_LAUNDRY,
+      page: () => const WeighLaundryView(),
+      binding: WeighLaundryBinding(),
     ),
   ];
 }
